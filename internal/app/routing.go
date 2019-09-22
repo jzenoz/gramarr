@@ -8,22 +8,26 @@ import (
 )
 
 // @todo: comment...
-func SetupHandlers(r *router.Router, a *Service) {
+func (s *Service) SetupHandlers(r *router.Router) {
 	// Send all telegram messages to our custom router
-	a.Bot.Handle(telebot.OnText, r.Route)
+	s.Bot.Handle(telebot.OnText, r.Route)
 
 	// Commands
-	r.HandleFunc("/auth", a.RequirePrivate(a.RequireAuth(users.UANone, a.HandleAuth)))
-	r.HandleFunc("/start", a.WithUser(a.RequirePrivate(a.RequireAuth(users.UANone, a.HandleStart))))
-	r.HandleFunc("/help", a.RequirePrivate(a.RequireAuth(users.UANone, a.HandleStart)))
-	r.HandleFunc("/cancel", a.RequirePrivate(a.RequireAuth(users.UANone, a.HandleCancel)))
-	r.HandleFunc("/addmovie", a.RequirePrivate(a.RequireAuth(users.UAMember, a.HandleAddMovie)))
-	r.HandleFunc("/addtv", a.RequirePrivate(a.RequireAuth(users.UAMember, a.HandleAddTVShow)))
-	r.HandleFunc("/users", a.RequirePrivate(a.RequireAuth(users.UAAdmin, a.HandleUsers)))
+	r.HandleFunc("/auth", s.WithMiddleWare(users.UANone, s.HandleAuth))
+	r.HandleFunc("/start", s.WithMiddleWare(users.UANone, s.HandleStart))
+	r.HandleFunc("/help", s.WithMiddleWare(users.UANone, s.HandleStart))
+	r.HandleFunc("/cancel", s.WithMiddleWare(users.UANone, s.HandleCancel))
+	r.HandleFunc("/addmovie", s.WithMiddleWare(users.UAMember, s.HandleAddMovie))
+	r.HandleFunc("/addtv", s.WithMiddleWare(users.UAMember, s.HandleAddTVShow))
+	r.HandleFunc("/users", s.WithMiddleWare(users.UAAdmin, s.HandleUsers))
 
 	// Catchall Command
-	r.HandleFallback(a.RequirePrivate(a.RequireAuth(users.UANone, a.HandleFallback)))
+	r.HandleFallback(s.WithMiddleWare(users.UANone, s.HandleFallback))
 
 	// Conversation Commands
-	r.HandleConvoFunc("/cancel", a.HandleConvoCancel)
+	r.HandleConvoFunc("/cancel", s.HandleConvoCancel)
+}
+
+func (s *Service) WithMiddleWare(access users.UserAccess, h router.Handler) router.Handler {
+	return s.RequirePrivate(s.RequireAuth(access, h))
 }

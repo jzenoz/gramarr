@@ -78,7 +78,7 @@ func main() {
 		Sonarr: sn,
 	}
 
-	app.SetupHandlers(r, a) // @todo refactor
+	a.SetupHandlers(r)
 	log.Print("Gramarr is up and running. Go call your bot!")
 	boter.Start()
 }
