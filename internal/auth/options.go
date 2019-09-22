@@ -7,9 +7,9 @@ import (
 type Options func(s *Service)
 
 type Bot interface {
-	Send(to users.User, msg string) error
-	SendError(to users.User, msg string) error
-	SendAdmin(admins []users.User, msg string) error
+	Send(to users.User, msg interface{}) error
+	SendError(to users.User, msg interface{}) error
+	SendToAdmins(msg interface{}) error
 }
 
 type User interface {

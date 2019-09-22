@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tommy647/gramarr/internal/util"
-
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
@@ -14,7 +12,7 @@ func (s *Service) HandleStart(m *tb.Message) {
 	user, exists := s.Users.User(m.Sender.ID)
 
 	var msg []string
-	msg = append(msg, fmt.Sprintf("Hello, I'm %s! Use these commands to control me:", s.Bot.Me.FirstName))
+	msg = append(msg, fmt.Sprintf("Hello, I'm %s! Use these commands to control me:", s.Bot.Name()))
 
 	if !exists {
 		msg = append(msg, "")
@@ -36,5 +34,5 @@ func (s *Service) HandleStart(m *tb.Message) {
 		msg = append(msg, "/cancel - cancel the current operation")
 	}
 
-	util.Send(s.Bot, m.Sender, strings.Join(msg, "\n"))
+	_ = s.Bot.Send(user, strings.Join(msg, "\n")) // @todo: handle error
 }

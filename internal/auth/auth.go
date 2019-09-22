@@ -77,7 +77,7 @@ func (s *Service) Auth(m *telebot.Message) {
 
 		// Notify Admin
 		adminMsg := fmt.Sprintf("%s has been granted admin access.", user.DisplayName())
-		_ = s.bot.SendAdmin(s.users.Admins(), adminMsg) // handle error
+		_ = s.bot.SendToAdmins(adminMsg) // handle error
 
 		return
 	}
@@ -107,14 +107,14 @@ func (s *Service) Auth(m *telebot.Message) {
 
 		// Notify Admin
 		adminMsg := fmt.Sprintf("%s has been granted acccess.", user.DisplayName())
-		_ = s.bot.SendAdmin(s.users.Admins(), adminMsg) // @todo: handle errors
+		_ = s.bot.SendToAdmins(adminMsg) // @todo: handle errors
 		return
 	}
 	// Notify User
-	_ = s.bot.SendError(user, "Your password is invalid.") // @todo: handle error
+	_ = s.bot.Send(user, "Your password is invalid.") // @todo: handle error
 
 	// Notify Admin
 	adminMsg := "%s made an invalid auth request with password: %s"
 	adminMsg = fmt.Sprintf(adminMsg, user.DisplayName(), util.EscapeMarkdown(m.Payload))
-	_ = s.bot.SendAdmin(s.users.Admins(), adminMsg) // @todo: handle error
+	_ = s.bot.SendToAdmins(adminMsg) // @todo: handle error
 }

@@ -1,5 +1,6 @@
 package app
 
+import "C"
 import (
 	"fmt"
 	"path/filepath"
@@ -14,7 +15,7 @@ import (
 )
 
 func NewAddMovieConversation(e *Service) *AddMovieConversation {
-	return &AddMovieConversation{env: e}
+	return &AddMovieConversation{env: e, bot: e.Bot}
 }
 
 type AddMovieConversation struct {
@@ -26,6 +27,7 @@ type AddMovieConversation struct {
 	selectedQualityProfile *radarr.Profile
 	selectedFolder         *radarr.Folder
 	env                    *Service
+	bot                    Bot
 }
 
 func (c *AddMovieConversation) Run(m *tb.Message) {
@@ -41,8 +43,8 @@ func (c *AddMovieConversation) CurrentStep() func(*telebot.Message) {
 }
 
 func (c *AddMovieConversation) AskMovie(m *tb.Message) func(*telebot.Message) {
-	user := users.User{} // @todo: fix
-	util.Send(c.env.Bot, user, "What movie do you want to search for?")
+	user := users.User{}                                          // @todo: fix
+	_ = c.bot.Send(user, "What movie do you want to search for?") // @todo: handle error
 
 	return func(m *tb.Message) {
 		c.movieQuery = m.Text
@@ -52,7 +54,7 @@ func (c *AddMovieConversation) AskMovie(m *tb.Message) func(*telebot.Message) {
 
 		// Search Service Failed
 		if err != nil {
-			util.SendError(c.env.Bot, user, "Failed to search movies.")
+			_ = c.bot.Send(user, "Failed to search movies.") // @todo: handle error
 			c.env.CM.StopConversation(c)
 			return
 		}
@@ -60,7 +62,7 @@ func (c *AddMovieConversation) AskMovie(m *tb.Message) func(*telebot.Message) {
 		// No Results
 		if len(movies) == 0 {
 			msg := fmt.Sprintf("No movie found with the title '%s'", util.EscapeMarkdown(c.movieQuery))
-			util.Send(c.env.Bot, user, msg)
+			_ = c.bot.Send(user, msg) // @todo: handle error
 			c.env.CM.StopConversation(c)
 			return
 		}
@@ -71,7 +73,7 @@ func (c *AddMovieConversation) AskMovie(m *tb.Message) func(*telebot.Message) {
 		for i, movie := range movies {
 			msg = append(msg, fmt.Sprintf("%d) %s", i+1, util.EscapeMarkdown(movie.String())))
 		}
-		util.Send(c.env.Bot, user, strings.Join(msg, "\n"))
+		_ = c.bot.Send(user, strings.Join(msg, "\n")) // @todo: handle error
 		c.currentStep = c.AskPickMovie(m)
 	}
 }
@@ -84,10 +86,9 @@ func (c *AddMovieConversation) AskPickMovie(m *tb.Message) func(*telebot.Message
 		options = append(options, fmt.Sprintf("%s", movie))
 	}
 	options = append(options, "/cancel")
-	util.SendKeyboardList(c.env.Bot, user, "Which one would you like to download?", options)
+	_ = c.bot.SendKeyboardList(user, "Which one would you like to download?", options) // @todo: handle error
 
 	return func(m *tb.Message) {
-
 		// Set the selected movie
 		for i, opt := range options {
 			if m.Text == opt {
@@ -98,7 +99,7 @@ func (c *AddMovieConversation) AskPickMovie(m *tb.Message) func(*telebot.Message
 
 		// Not a valid movie selection
 		if c.selectedMovie == nil {
-			util.SendError(c.env.Bot, user, "Invalid selection.")
+			_ = c.bot.Send(user, "Invalid selection.") // @todo: handle error
 			c.currentStep = c.AskPickMovie(m)
 			return
 		}
@@ -113,7 +114,7 @@ func (c *AddMovieConversation) AskPickMovieQuality(m *tb.Message) func(*telebot.
 
 	// GetProfile Service Failed
 	if err != nil {
-		util.SendError(c.env.Bot, user, "Failed to get quality profiles.")
+		_ = c.bot.Send(user, "Failed to get quality profiles.") // @todo: handle error
 		c.env.CM.StopConversation(c)
 		return nil
 	}
@@ -124,7 +125,7 @@ func (c *AddMovieConversation) AskPickMovieQuality(m *tb.Message) func(*telebot.
 		options = append(options, fmt.Sprintf("%v", QualityProfile.Name))
 	}
 	options = append(options, "/cancel")
-	util.SendKeyboardList(c.env.Bot, user, "Which quality shall I look for?", options)
+	_ = c.bot.SendKeyboardList(user, "Which quality shall I look for?", options) // @todo: handle error
 
 	return func(m *tb.Message) {
 		// Set the selected option
@@ -137,7 +138,7 @@ func (c *AddMovieConversation) AskPickMovieQuality(m *tb.Message) func(*telebot.
 
 		// Not a valid selection
 		if c.selectedQualityProfile == nil {
-			util.SendError(c.env.Bot, user, "Invalid selection.")
+			_ = c.bot.Send(user, "Invalid selection.") // @todo: handle error
 			c.currentStep = c.AskPickMovieQuality(m)
 			return
 		}
@@ -153,14 +154,14 @@ func (c *AddMovieConversation) AskFolder(m *tb.Message) func(*telebot.Message) {
 
 	// GetFolders Service Failed
 	if err != nil {
-		util.SendError(c.env.Bot, user, "Failed to get folders.")
+		_ = c.bot.Send(user, "Failed to get folders.") // @todo: handle error
 		c.env.CM.StopConversation(c)
 		return nil
 	}
 
 	// No Results
 	if len(folders) == 0 {
-		util.SendError(c.env.Bot, user, "No destination folders found.")
+		_ = c.bot.Send(user, "No destination folders found.") // @todo: handle error
 		c.env.CM.StopConversation(c)
 		return nil
 	}
@@ -173,7 +174,7 @@ func (c *AddMovieConversation) AskFolder(m *tb.Message) func(*telebot.Message) {
 	for i, folder := range folders {
 		msg = append(msg, fmt.Sprintf("%d) %s", i+1, util.EscapeMarkdown(filepath.Base(folder.Path))))
 	}
-	util.Send(c.env.Bot, user, strings.Join(msg, "\n"))
+	_ = c.bot.Send(user, strings.Join(msg, "\n")) // @todo: handle error
 
 	// Send the custom reply keyboard
 	var options []string
@@ -181,7 +182,7 @@ func (c *AddMovieConversation) AskFolder(m *tb.Message) func(*telebot.Message) {
 		options = append(options, fmt.Sprintf("%s", filepath.Base(folder.Path)))
 	}
 	options = append(options, "/cancel")
-	util.SendKeyboardList(c.env.Bot, user, "Which folder should it download to?", options)
+	_ = c.bot.SendKeyboardList(user, "Which folder should it download to?", options) // @todo: handle error
 
 	return func(m *tb.Message) {
 		// Set the selected folder
@@ -194,7 +195,7 @@ func (c *AddMovieConversation) AskFolder(m *tb.Message) func(*telebot.Message) {
 
 		// Not a valid folder selection
 		if c.selectedMovie == nil {
-			util.SendError(c.env.Bot, user, "Invalid selection.")
+			_ = c.bot.Send(user, "Invalid selection.") // @todo: handle error
 			c.currentStep = c.AskFolder(m)
 			return
 		}
@@ -209,22 +210,22 @@ func (c *AddMovieConversation) AddMovie(m *tb.Message) {
 
 	// Failed to add movie
 	if err != nil {
-		util.SendError(c.env.Bot, user, "Failed to add movie.")
+		_ = c.bot.Send(user, "Failed to add movie.") // @todo: handle error
 		c.env.CM.StopConversation(c)
 		return
 	}
 
 	if c.selectedMovie.PosterURL != "" {
-		photo := &tb.Photo{File: tb.FromURL(c.selectedMovie.PosterURL)}
-		c.env.Bot.Send(user, photo)
+		photo := &tb.Photo{File: tb.FromURL(c.selectedMovie.PosterURL)} // @todo: refactor here
+		_ = c.bot.Send(user, photo)                                     // @todo: handle error
 	}
 
 	// Notify User
-	util.Send(c.env.Bot, user, "Movie has been added!")
+	_ = c.bot.Send(user, "Movie has been added!") // @todo: handle error
 
 	// Notify Admin
 	adminMsg := fmt.Sprintf("%s added movie '%s'", user.DisplayName(), util.EscapeMarkdown(c.selectedMovie.String()))
-	util.SendAdmin(c.env.Bot, c.env.Users.Admins(), adminMsg)
+	_ = c.bot.SendToAdmins(adminMsg) // @todo: refactor
 
 	c.env.CM.StopConversation(c)
 }

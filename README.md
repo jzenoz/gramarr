@@ -1,6 +1,14 @@
 # gramarr
 A [Radarr](https://github.com/Radarr/Radarr)/[Sonarr](https://github.com/Sonarr/Sonarr) Telegram Bot featuring user authentication/level access.
 
+## Reports
+
+<p align="center">
+  <a href="https://goreportcard.com/report/github.com/tommy647/gramarr">
+    <img src="https://goreportcard.com/badge/github.com/tommy647/gramarr" />
+  </a>
+</p>
+
 ## Features
 
 ### Sonarr

@@ -67,13 +67,13 @@ func main() {
 		log.Fatalf("failed to create telegram bot client: %v", err)
 	}
 
-	boter := bot.New(conf.Bot, bot.WithBot(tbot))
+	boter := bot.New(conf.Bot, bot.WithBot(tbot), bot.WithAdmins(usrs.Admins()))
 
 	authoriser := auth.New(conf.Auth, auth.WithBot(boter), auth.WithUsers(usrs))
 
-	a := &app.Service{
+	a := &app.Service{ // @todo: create contructor
 		Auth:   authoriser,
-		Bot:    tbot,
+		Bot:    boter,
 		Users:  usrs,
 		CM:     cm,
 		Radarr: rc,

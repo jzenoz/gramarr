@@ -24,17 +24,43 @@ func New(cfg Config) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &Service{
 		bot: b,
 	}, nil
 }
 
-func (s *Service) Start() {
+func (s Service) Start() {
 	s.bot.Start()
 }
 
-func (s *Service) Send(to users.User, msg string) error {
+func (s *Service) Handle(endpoint interface{}, handler interface{}) {
+	s.bot.Handle(endpoint, handler)
+}
+
+// Send a message to a user via telegram
+// @todo: implement some type switching on the message so we can send strings and photos
+func (s Service) Send(to users.User, msg interface{}) error {
 	_, err := s.bot.Send(to, msg, telebot.ModeMarkdown)
+	return err
+}
+
+func (s Service) SendKeyboardList(to users.User, msg string, list []string) error {
+	var buttons []telebot.ReplyButton
+	for _, item := range list {
+		buttons = append(buttons, telebot.ReplyButton{Text: item})
+	}
+
+	var replyKeys [][]telebot.ReplyButton
+	for _, b := range buttons {
+		replyKeys = append(replyKeys, []telebot.ReplyButton{b})
+	}
+
+	_, err := s.bot.Send(to, msg, &telebot.ReplyMarkup{
+		ReplyKeyboard:   replyKeys,
+		OneTimeKeyboard: true,
+	})
+
 	return err
 }
 

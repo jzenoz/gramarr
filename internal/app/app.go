@@ -4,25 +4,34 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tommy647/gramarr/internal/bot"
-
 	"github.com/tommy647/gramarr/internal/conversation"
 	"github.com/tommy647/gramarr/internal/radarr"
 	"github.com/tommy647/gramarr/internal/sonarr"
 	"github.com/tommy647/gramarr/internal/users"
-	"github.com/tommy647/gramarr/internal/util"
 
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
+// Authoriser interface to our auth service
 type Authoriser interface {
 	Auth(message *tb.Message)
 }
 
+type Bot interface {
+	Start()
+	Send(users.User, interface{}) error
+	SendKeyboardList(users.User, string, []string) error
+	SendToAdmins(interface{}) error
+	Name() string
+	Handle(interface{}, interface{})
+}
+
+// Service our main service
+// @todo: why are these exposed?
 type Service struct {
 	Auth   Authoriser
 	Users  *users.UserDB
-	Bot    bot.Bot
+	Bot    Bot
 	CM     *conversation.ConversationManager
 	Radarr *radarr.Client
 	Sonarr *sonarr.Client
@@ -51,12 +60,12 @@ func (s *Service) RequireAuth(access users.UserAccess, h func(m *tb.Message)) fu
 			// Notify User
 			msg = append(msg, "Your access has been revoked and you cannot reauthorize.")
 			msg = append(msg, "Please reach out to the bot owner for support.")
-			util.SendError(s.Bot, user, strings.Join(msg, "\n"))
+			_ = s.Bot.Send(user, strings.Join(msg, "\n")) // @todo: handle error
 
 			// Notify Admins
 			msg = append(msg, fmt.Sprintf("Revoked users %s attempted the following command:", user.DisplayName()))
 			msg = append(msg, fmt.Sprintf("`%s`", m.Text))
-			util.SendAdmin(s.Bot, s.Users.Admins(), strings.Join(msg, "\n"))
+			_ = s.Bot.SendToAdmins(strings.Join(msg, "\n")) // @todo: handle error
 			return
 		}
 
@@ -64,24 +73,24 @@ func (s *Service) RequireAuth(access users.UserAccess, h func(m *tb.Message)) fu
 		isAuthorized := user.IsAdmin() || user.IsMember()
 		if !isAuthorized && access != users.UANone {
 			// Notify User
-			util.SendError(s.Bot, user, "You are not authorized to use this bot.\n`/auth [password]` to authorize.")
+			_ = s.Bot.Send(user, "You are not authorized to use this bot.\n`/auth [password]` to authorize.") // @todo: handle error
 
 			// Notify Admins
 			msg = append(msg, fmt.Sprintf("Unauthorized users %s attempted the following command:", user.DisplayName()))
 			msg = append(msg, fmt.Sprintf("`%s`", m.Text))
-			util.SendAdmin(s.Bot, s.Users.Admins(), strings.Join(msg, "\n"))
+			_ = s.Bot.SendToAdmins(strings.Join(msg, "\n")) // @todo: handle error
 			return
 		}
 
 		// Is Non-Admin and requires Admin?
 		if !user.IsAdmin() && access == users.UAAdmin {
 			// Notify User
-			util.SendError(s.Bot, user, "Only admins can use this command.")
+			_ = s.Bot.Send(user, "Only admins can use this command.") // @todo: handle error
 
 			// Notify Admins
 			msg = append(msg, fmt.Sprintf("User %s attempted the following admin command:", user.DisplayName()))
 			msg = append(msg, fmt.Sprintf("`%s`", m.Text))
-			util.SendAdmin(s.Bot, s.Users.Admins(), strings.Join(msg, "\n"))
+			_ = s.Bot.SendToAdmins(strings.Join(msg, "\n")) // @todo: handle error
 			return
 		}
 
