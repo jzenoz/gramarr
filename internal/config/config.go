@@ -6,25 +6,19 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
+	"github.com/tommy647/gramarr/internal/auth"
+	"github.com/tommy647/gramarr/internal/bot"
+	"github.com/tommy647/gramarr/internal/bot/telegram"
 	"github.com/tommy647/gramarr/internal/radarr"
 	"github.com/tommy647/gramarr/internal/sonarr"
 )
 
 type Config struct {
-	Telegram Telegram       `json:"telegram"`
-	Bot      Bot            `json:"bot"`
-	Radarr   *radarr.Config `json:"radarr"`
-	Sonarr   *sonarr.Config `json:"sonarr"`
-}
-
-type Telegram struct {
-	BotToken string `json:"botToken"`
-}
-
-type Bot struct {
-	Name          string `json:"name"`
-	Password      string `json:"password"`
-	AdminPassword string `json:"adminPassword"`
+	Telegram telegram.Config `json:"telegram"`
+	Auth     auth.Config     `json:"auth"`
+	Bot      bot.Config      `json:"bot"`
+	Radarr   *radarr.Config  `json:"radarr"`
+	Sonarr   *sonarr.Config  `json:"sonarr"`
 }
 
 func LoadConfig(configDir string) (*Config, error) {

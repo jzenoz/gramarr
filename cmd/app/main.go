@@ -4,15 +4,19 @@ import (
 	"flag"
 	"log"
 	"path/filepath"
-	"time"
 
+	"github.com/tommy647/gramarr/internal/bot/telegram"
+
+	"github.com/tommy647/gramarr/internal/app"
+	"github.com/tommy647/gramarr/internal/auth"
+	"github.com/tommy647/gramarr/internal/bot"
 	"github.com/tommy647/gramarr/internal/config"
 	"github.com/tommy647/gramarr/internal/conversation"
-	"github.com/tommy647/gramarr/internal/env"
 	"github.com/tommy647/gramarr/internal/radarr"
 	"github.com/tommy647/gramarr/internal/router"
 	"github.com/tommy647/gramarr/internal/sonarr"
 	"github.com/tommy647/gramarr/internal/users"
+
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
@@ -33,9 +37,9 @@ func main() {
 	//}
 
 	userPath := filepath.Join(*configDir, "users.json")
-	users, err := users.NewUserDB(userPath)
+	usrs, err := users.NewUserDB(userPath)
 	if err != nil {
-		log.Fatalf("failed to load the users db %v", err)
+		log.Fatalf("failed to load the usrs db %v", err)
 	}
 
 	var rc *radarr.Client
@@ -57,45 +61,46 @@ func main() {
 	cm := conversation.NewConversationManager()
 	r := router.NewRouter(cm)
 
-	poller := tb.LongPoller{Timeout: 15 * time.Second}
-	bot, err := tb.NewBot(tb.Settings{
-		Token:  conf.Telegram.BotToken,
-		Poller: &poller,
-	})
+	// @todo : move this into our bot service
+	tbot, err := telegram.New(conf.Telegram)
 	if err != nil {
 		log.Fatalf("failed to create telegram bot client: %v", err)
 	}
 
-	e := &env.Env{
-		Config: conf,
-		Bot:    bot,
-		Users:  users,
+	boter := bot.New(conf.Bot, bot.WithBot(tbot))
+
+	authoriser := auth.New(conf.Auth, auth.WithBot(boter), auth.WithUsers(usrs))
+
+	a := &app.Service{
+		Auth:   authoriser,
+		Bot:    tbot,
+		Users:  usrs,
 		CM:     cm,
 		Radarr: rc,
 		Sonarr: sn,
 	}
 
-	setupHandlers(r, e)
+	setupHandlers(r, a)
 	log.Print("Gramarr is up and running. Go call your bot!")
-	bot.Start()
+	boter.Start()
 }
 
-func setupHandlers(r *router.Router, e *env.Env) {
+func setupHandlers(r *router.Router, a *app.Service) {
 	// Send all telegram messages to our custom router
-	e.Bot.Handle(tb.OnText, r.Route)
+	a.Bot.Handle(tb.OnText, r.Route)
 
 	// Commands
-	r.HandleFunc("/auth", e.RequirePrivate(e.RequireAuth(users.UANone, e.HandleAuth)))
-	r.HandleFunc("/start", e.RequirePrivate(e.RequireAuth(users.UANone, e.HandleStart)))
-	r.HandleFunc("/help", e.RequirePrivate(e.RequireAuth(users.UANone, e.HandleStart)))
-	r.HandleFunc("/cancel", e.RequirePrivate(e.RequireAuth(users.UANone, e.HandleCancel)))
-	r.HandleFunc("/addmovie", e.RequirePrivate(e.RequireAuth(users.UAMember, e.HandleAddMovie)))
-	r.HandleFunc("/addtv", e.RequirePrivate(e.RequireAuth(users.UAMember, e.HandleAddTVShow)))
-	r.HandleFunc("/users", e.RequirePrivate(e.RequireAuth(users.UAAdmin, e.HandleUsers)))
+	r.HandleFunc("/auth", a.RequirePrivate(a.RequireAuth(users.UANone, a.HandleAuth)))
+	r.HandleFunc("/start", a.RequirePrivate(a.RequireAuth(users.UANone, a.HandleStart)))
+	r.HandleFunc("/help", a.RequirePrivate(a.RequireAuth(users.UANone, a.HandleStart)))
+	r.HandleFunc("/cancel", a.RequirePrivate(a.RequireAuth(users.UANone, a.HandleCancel)))
+	r.HandleFunc("/addmovie", a.RequirePrivate(a.RequireAuth(users.UAMember, a.HandleAddMovie)))
+	r.HandleFunc("/addtv", a.RequirePrivate(a.RequireAuth(users.UAMember, a.HandleAddTVShow)))
+	r.HandleFunc("/users", a.RequirePrivate(a.RequireAuth(users.UAAdmin, a.HandleUsers)))
 
 	// Catchall Command
-	r.HandleFallback(e.RequirePrivate(e.RequireAuth(users.UANone, e.HandleFallback)))
+	r.HandleFallback(a.RequirePrivate(a.RequireAuth(users.UANone, a.HandleFallback)))
 
 	// Conversation Commands
-	r.HandleConvoFunc("/cancel", e.HandleConvoCancel)
+	r.HandleConvoFunc("/cancel", a.HandleConvoCancel)
 }

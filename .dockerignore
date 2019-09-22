@@ -2,6 +2,7 @@ Dockerfile
 users.json
 config.json
 dist
+/app
 
 .idea/
 .vscode/

@@ -85,8 +85,7 @@ func (u *UserDB) Create(user User) error {
 	u.users = append(u.users, user)
 	u.usersMap[user.ID] = user
 
-	u.Save()
-	return nil
+	return u.Save()
 }
 
 func (u *UserDB) Update(user User) error {
@@ -102,8 +101,7 @@ func (u *UserDB) Update(user User) error {
 	}
 
 	u.usersMap[user.ID] = user
-	u.Save()
-	return nil
+	return u.Save()
 }
 
 func (u *UserDB) Delete(user User) error {
@@ -119,8 +117,8 @@ func (u *UserDB) Delete(user User) error {
 	}
 
 	delete(u.usersMap, user.ID)
-	u.Save()
-	return nil
+
+	return u.Save()
 }
 
 func (u *UserDB) User(id int) (User, bool) {
@@ -242,7 +240,9 @@ func (u *UserDB) Load() error {
 		Users []User
 	}
 
-	json.Unmarshal(raw, &db)
+	if err = json.Unmarshal(raw, &db); err != nil {
+		return err
+	}
 	u.users = db.Users
 	u.usersMap = map[int]User{}
 	for _, user := range db.Users {

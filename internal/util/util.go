@@ -45,14 +45,6 @@ func SendMany(bot *tb.Bot, to []users.User, msg string) {
 	}
 }
 
-func DisplayName(u *tb.User) string {
-	if u.FirstName != "" && u.LastName != "" {
-		return EscapeMarkdown(fmt.Sprintf("%s %s", u.FirstName, u.LastName))
-	}
-
-	return EscapeMarkdown(u.FirstName)
-}
-
 func EscapeMarkdown(s string) string {
 	s = strings.Replace(s, "[", "\\[", -1)
 	s = strings.Replace(s, "]", "\\]", -1)

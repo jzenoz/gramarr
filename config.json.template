@@ -1,8 +1,9 @@
 {
   "telegram": {
-    "botToken": ""
+    "token": ""
   },
   "bot": {
+    "name" : "",
     "password": "",
     "adminPassword": ""
   },
