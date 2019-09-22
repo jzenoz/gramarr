@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/tommy647/gramarr/internal/bot"
+	"github.com/tommy647/gramarr/internal/message"
 	"github.com/tommy647/gramarr/internal/users"
 
 	"gopkg.in/tucnak/telebot.v2"
@@ -38,6 +39,35 @@ func getTelegramMessage(message interface{}) (*telebot.Message, error) {
 		return message.(*telebot.Message), nil
 	}
 	return nil, errors.New("not a telegram message")
+}
+
+// WithMessage converts a telegram message to a standard message
+func (s Service) WithMessage(msg interface{}) (*message.Message, error) {
+	var m *telebot.Message
+	switch msg.(type) {
+	case *telebot.Message:
+		m = msg.(*telebot.Message)
+	default:
+		return nil, errors.New("not a telegram message")
+	}
+
+	user := users.User{
+		ID:        m.Sender.ID,
+		Username:  m.Sender.Username,
+		FirstName: m.Sender.FirstName,
+		LastName:  m.Sender.LastName,
+		Access:    users.UANone,
+	}
+
+	return &message.Message{
+		Payload: m.Payload,
+		Text:    m.Text,
+		User:    user,
+		Private: m.Private(),
+		Chat: message.Chat{
+			ID: m.Chat.ID,
+		},
+	}, nil
 }
 
 // @todo: we need to flesh out the type checking here

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/tommy647/gramarr/internal/conversation"
+	"github.com/tommy647/gramarr/internal/message"
 	"github.com/tommy647/gramarr/internal/radarr"
 	"github.com/tommy647/gramarr/internal/sonarr"
 	"github.com/tommy647/gramarr/internal/users"
@@ -13,7 +14,7 @@ import (
 
 // Authoriser interface to our auth service
 type Authoriser interface {
-	Auth(message interface{})
+	Auth(message *message.Message)
 }
 
 type Bot interface {
@@ -26,7 +27,12 @@ type Bot interface {
 	GetUserID(interface{}) interface{}
 	IsPrivate(interface{}) bool
 	GetText(interface{}) string
+	WithMessage(interface{}) (*message.Message, error)
 }
+
+type ContextUserKey string
+
+const cxtUserKey ContextUserKey = `user`
 
 // Service our main service
 // @todo: why are these exposed?
@@ -39,28 +45,37 @@ type Service struct {
 	Sonarr *sonarr.Client
 }
 
-func (s *Service) HandleAuth(m interface{}) { s.Auth.Auth(m) }
+func (s *Service) HandleAuth(m *message.Message) { s.Auth.Auth(m) }
 
-func (s *Service) WithUser(h func(m interface{})) func(m interface{}) {
-	return func(m interface{}) {
-		log.Println("Getting user")
+// WithUser infers our user from the message and add into the context
+func (s *Service) WithUser(h func(m *message.Message)) func(m *message.Message) {
+	log.Print("WithUser")
+	return func(m *message.Message) {
+		user, exists := s.Users.User(m.User.ID)
+		if !exists {
+			if err := s.Users.Create(m.User); err != nil {
+				log.Println(err.Error())
+			}
+		}
+		m.User = user
 		h(m)
 	}
 }
 
-func (s *Service) RequirePrivate(h func(m interface{})) func(m interface{}) {
-	return func(m interface{}) {
-		if !s.Bot.IsPrivate(m) {
+func (s *Service) RequirePrivate(h func(m *message.Message)) func(m *message.Message) {
+	log.Print("RequirePrivate")
+	return func(m *message.Message) {
+		if !m.Private {
+			log.Println("not a private message")
 			return
 		}
 		h(m)
 	}
 }
 
-func (s *Service) RequireAuth(access users.UserAccess, h func(m interface{})) func(m interface{}) {
-	return func(m interface{}) {
-		userID := s.Bot.GetUserID(m)
-		user, _ := s.Users.User(userID)
+func (s *Service) RequireAuth(access users.UserAccess, h func(m *message.Message)) func(m *message.Message) {
+	return func(m *message.Message) {
+		user := m.User
 		var msg []string
 
 		// Is Revoked?

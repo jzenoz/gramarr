@@ -1,6 +1,10 @@
 package bot
 
-import "github.com/tommy647/gramarr/internal/users"
+// @todo: superfluous wrapper
+import (
+	"github.com/tommy647/gramarr/internal/message"
+	"github.com/tommy647/gramarr/internal/users"
+)
 
 var _ Bot = (*Service)(nil)
 
@@ -13,6 +17,7 @@ type Bot interface {
 	IsPrivate(interface{}) bool
 	GetText(interface{}) string
 	GetPayload(interface{}) interface{}
+	WithMessage(interface{}) (*message.Message, error)
 }
 
 // Service our bot service struct
@@ -39,6 +44,10 @@ func (s Service) IsPrivate(message interface{}) bool                { return s.b
 func (s Service) GetUserID(message interface{}) interface{}         { return s.bot.GetUserID(message) }
 func (s *Service) Handle(endpoint interface{}, handler interface{}) { s.bot.Handle(endpoint, handler) }
 func (s *Service) GetPayload(msg interface{}) interface{}           { return s.bot.GetPayload(msg) }
+
+func (s *Service) WithMessage(msg interface{}) (*message.Message, error) {
+	return s.bot.WithMessage(msg)
+}
 
 // Send sends a message to recipient
 func (s Service) Send(to users.User, msg interface{}) error { return s.bot.Send(to, msg) }

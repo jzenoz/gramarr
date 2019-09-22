@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/tommy647/gramarr/internal/message"
+
 	"github.com/patrickmn/go-cache"
-	tb "gopkg.in/tucnak/telebot.v2"
 )
 
 type Conversation interface {
@@ -23,7 +24,7 @@ func NewConversationManager() *ConversationManager {
 	return &ConversationManager{convos: convos}
 }
 
-func (cm *ConversationManager) ProcessMessage(m *tb.Message) {
+func (cm *ConversationManager) ProcessMessage(m *message.Message) {
 	key := cm.convoKey(m)
 	if convo, ok := cm.convos.Get(key); ok {
 		c := convo.(Conversation)
@@ -31,12 +32,12 @@ func (cm *ConversationManager) ProcessMessage(m *tb.Message) {
 	}
 }
 
-func (cm *ConversationManager) HasConversation(m *tb.Message) bool {
+func (cm *ConversationManager) HasConversation(m *message.Message) bool {
 	_, exists := cm.convos.Get(cm.convoKey(m))
 	return exists
 }
 
-func (cm *ConversationManager) StartConversation(c Conversation, m interface{}) {
+func (cm *ConversationManager) StartConversation(c Conversation, m *message.Message) {
 	c.Run(m)
 	cm.convos.SetDefault(cm.convoKey(m), c)
 }
@@ -50,11 +51,11 @@ func (cm *ConversationManager) StopConversation(c Conversation) {
 	}
 }
 
-func (cm *ConversationManager) Conversation(m *tb.Message) (Conversation, bool) {
+func (cm *ConversationManager) Conversation(m *message.Message) (Conversation, bool) {
 	c, exists := cm.convos.Get(cm.convoKey(m))
 	return c.(Conversation), exists
 }
 
-func (cm *ConversationManager) convoKey(m interface{}) string {
-	return fmt.Sprint("% d:% d m.Chat.ID, m.Sender.ID") // @todo: fix
+func (cm *ConversationManager) convoKey(m *message.Message) string {
+	return fmt.Sprintf("%d:%d", m.Chat.ID, m.User.ID)
 }

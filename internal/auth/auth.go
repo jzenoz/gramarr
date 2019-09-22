@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/tommy647/gramarr/internal/message"
+
 	"github.com/tommy647/gramarr/internal/users"
 	"github.com/tommy647/gramarr/internal/util"
 )
@@ -28,12 +30,13 @@ func New(cfg Config, opts ...Options) *Service {
 	return s
 }
 
-func (s *Service) Auth(m interface{}) {
+// Auth handle the /auth command, get's our user from the db to prevent malicious behaviour
+func (s *Service) Auth(m *message.Message) {
 	var msg []string
 
-	pass := s.bot.GetPayload(m)
+	pass := m.Payload
 
-	userID := s.bot.GetUserID(m)
+	userID := m.User.ID
 
 	user, exists := s.users.User(userID)
 
@@ -117,6 +120,6 @@ func (s *Service) Auth(m interface{}) {
 
 	// Notify Admin
 	adminMsg := "%s made an invalid auth request with password: %s"
-	adminMsg = fmt.Sprintf(adminMsg, user.DisplayName(), util.EscapeMarkdown(s.bot.GetPayload(m).(string)))
+	adminMsg = fmt.Sprintf(adminMsg, user.DisplayName(), util.EscapeMarkdown(m.Payload))
 	_ = s.bot.SendToAdmins(adminMsg) // @todo: handle error
 }

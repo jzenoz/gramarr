@@ -1,5 +1,7 @@
 package app
 
-func (s *Service) HandleUsers(m interface{}) {
+import "github.com/tommy647/gramarr/internal/message"
+
+func (s *Service) HandleUsers(m *message.Message) {
 	// @todo: implement...
 }

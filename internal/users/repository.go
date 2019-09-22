@@ -37,6 +37,8 @@ func (u *UserDB) Create(user User) error {
 	if u.Exists(user.ID) {
 		return fmt.Errorf("users with ID %d already exists", user.ID)
 	}
+	// new user, make sure they can't spoof the access rights
+	user.Access = UANone
 	u.Lock()
 	u.users = append(u.users, user)
 	u.usersMap[user.ID] = user
@@ -84,7 +86,7 @@ func (u *UserDB) User(id interface{}) (User, bool) { // @todo: refactor to a nil
 	return user, exists
 }
 
-func (u *UserDB) Exists(id int) bool {
+func (u *UserDB) Exists(id interface{}) bool {
 	u.RLock()
 	defer u.RUnlock()
 	_, ok := u.usersMap[id]

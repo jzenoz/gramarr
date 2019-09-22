@@ -3,9 +3,11 @@ package app
 import (
 	"fmt"
 	"strings"
+
+	"github.com/tommy647/gramarr/internal/message"
 )
 
-func (s *Service) HandleStart(m interface{}) {
+func (s *Service) HandleStart(m *message.Message) {
 	userID := s.Bot.GetText(m)
 	user, exists := s.Users.User(userID)
 

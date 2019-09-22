@@ -4,15 +4,14 @@ import (
 	"regexp"
 
 	"github.com/tommy647/gramarr/internal/conversation"
-
-	"gopkg.in/tucnak/telebot.v2"
+	"github.com/tommy647/gramarr/internal/message"
 )
 
 var cmdRx = regexp.MustCompile(`^(/\w+)(@(\w+))?(\s|$)(.+)?`)
 
-type Handler func(interface{})
+type Handler func(message *message.Message)
 
-type ConvoHandler func(conversation.Conversation, *telebot.Message)
+type ConvoHandler func(conversation.Conversation, *message.Message)
 
 func NewRouter(cm *conversation.ConversationManager) *Router {
 	return &Router{cm: cm, routes: map[string]Handler{}, convoRoutes: map[string]ConvoHandler{}}
@@ -37,13 +36,13 @@ func (r *Router) HandleConvoFunc(cmd string, h ConvoHandler) {
 	r.convoRoutes[cmd] = h
 }
 
-func (r *Router) Route(m *telebot.Message) {
+func (r *Router) Route(m *message.Message) {
 	if !r.routeConvo(m) && !r.routeCommand(m) {
 		r.routeFallback(m)
 	}
 }
 
-func (r *Router) routeConvo(m *telebot.Message) bool {
+func (r *Router) routeConvo(m *message.Message) bool {
 	if !r.cm.HasConversation(m) {
 		return false
 	}
@@ -61,7 +60,7 @@ func (r *Router) routeConvo(m *telebot.Message) bool {
 	return true
 }
 
-func (r *Router) routeCommand(m *telebot.Message) bool {
+func (r *Router) routeCommand(m *message.Message) bool {
 	if cmd, match := r.parseCommand(m); match {
 		if route, exists := r.routes[cmd]; exists {
 			route(m)
@@ -71,13 +70,13 @@ func (r *Router) routeCommand(m *telebot.Message) bool {
 	return false
 }
 
-func (r Router) routeFallback(m *telebot.Message) {
+func (r Router) routeFallback(m *message.Message) {
 	if r.fallback != nil {
 		r.fallback(m)
 	}
 }
 
-func (r *Router) parseCommand(m *telebot.Message) (string, bool) {
+func (r *Router) parseCommand(m *message.Message) (string, bool) {
 	match := cmdRx.FindAllStringSubmatch(m.Text, -1)
 	if match != nil {
 		return match[0][1], true
