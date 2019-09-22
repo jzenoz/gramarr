@@ -2,19 +2,18 @@ package app
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/tommy647/gramarr/internal/conversation"
 	"github.com/tommy647/gramarr/internal/radarr"
 	"github.com/tommy647/gramarr/internal/sonarr"
 	"github.com/tommy647/gramarr/internal/users"
-
-	tb "gopkg.in/tucnak/telebot.v2"
 )
 
 // Authoriser interface to our auth service
 type Authoriser interface {
-	Auth(message *tb.Message)
+	Auth(message interface{})
 }
 
 type Bot interface {
@@ -24,6 +23,9 @@ type Bot interface {
 	SendToAdmins(interface{}) error
 	Name() string
 	Handle(interface{}, interface{})
+	GetUserID(interface{}) interface{}
+	IsPrivate(interface{}) bool
+	GetText(interface{}) string
 }
 
 // Service our main service
@@ -37,22 +39,28 @@ type Service struct {
 	Sonarr *sonarr.Client
 }
 
-func (s *Service) HandleAuth(m *tb.Message) {
-	s.Auth.Auth(m)
+func (s *Service) HandleAuth(m interface{}) { s.Auth.Auth(m) }
+
+func (s *Service) WithUser(h func(m interface{})) func(m interface{}) {
+	return func(m interface{}) {
+		log.Println("Getting user")
+		h(m)
+	}
 }
 
-func (s *Service) RequirePrivate(h func(m *tb.Message)) func(m *tb.Message) {
-	return func(m *tb.Message) {
-		if !m.Private() {
+func (s *Service) RequirePrivate(h func(m interface{})) func(m interface{}) {
+	return func(m interface{}) {
+		if !s.Bot.IsPrivate(m) {
 			return
 		}
 		h(m)
 	}
 }
 
-func (s *Service) RequireAuth(access users.UserAccess, h func(m *tb.Message)) func(m *tb.Message) {
-	return func(m *tb.Message) {
-		user, _ := s.Users.User(m.Sender.ID)
+func (s *Service) RequireAuth(access users.UserAccess, h func(m interface{})) func(m interface{}) {
+	return func(m interface{}) {
+		userID := s.Bot.GetUserID(m)
+		user, _ := s.Users.User(userID)
 		var msg []string
 
 		// Is Revoked?
@@ -64,7 +72,7 @@ func (s *Service) RequireAuth(access users.UserAccess, h func(m *tb.Message)) fu
 
 			// Notify Admins
 			msg = append(msg, fmt.Sprintf("Revoked users %s attempted the following command:", user.DisplayName()))
-			msg = append(msg, fmt.Sprintf("`%s`", m.Text))
+			msg = append(msg, fmt.Sprintf("`%s`", s.Bot.GetText(m)))
 			_ = s.Bot.SendToAdmins(strings.Join(msg, "\n")) // @todo: handle error
 			return
 		}
@@ -77,7 +85,7 @@ func (s *Service) RequireAuth(access users.UserAccess, h func(m *tb.Message)) fu
 
 			// Notify Admins
 			msg = append(msg, fmt.Sprintf("Unauthorized users %s attempted the following command:", user.DisplayName()))
-			msg = append(msg, fmt.Sprintf("`%s`", m.Text))
+			msg = append(msg, fmt.Sprintf("`%s`", s.Bot.GetText(m)))
 			_ = s.Bot.SendToAdmins(strings.Join(msg, "\n")) // @todo: handle error
 			return
 		}
@@ -89,7 +97,7 @@ func (s *Service) RequireAuth(access users.UserAccess, h func(m *tb.Message)) fu
 
 			// Notify Admins
 			msg = append(msg, fmt.Sprintf("User %s attempted the following admin command:", user.DisplayName()))
-			msg = append(msg, fmt.Sprintf("`%s`", m.Text))
+			msg = append(msg, fmt.Sprintf("`%s`", s.Bot.GetText(m)))
 			_ = s.Bot.SendToAdmins(strings.Join(msg, "\n")) // @todo: handle error
 			return
 		}

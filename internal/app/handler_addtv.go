@@ -10,7 +10,6 @@ import (
 	"github.com/tommy647/gramarr/internal/sonarr"
 	"github.com/tommy647/gramarr/internal/util"
 	"gopkg.in/tucnak/telebot.v2"
-	tb "gopkg.in/tucnak/telebot.v2"
 )
 
 func NewAddTVShowConversation(e *Service) *AddTVShowConversation {
@@ -18,7 +17,7 @@ func NewAddTVShowConversation(e *Service) *AddTVShowConversation {
 }
 
 type AddTVShowConversation struct {
-	currentStep             func(*tb.Message)
+	currentStep             func(interface{})
 	TVQuery                 string
 	TVShowResults           []sonarr.TVShow
 	folderResults           []sonarr.Folder
@@ -31,7 +30,7 @@ type AddTVShowConversation struct {
 	bot                     Bot
 }
 
-func (c *AddTVShowConversation) Run(m *telebot.Message) {
+func (c *AddTVShowConversation) Run(m interface{}) {
 	c.currentStep = c.AskTVShow(m)
 }
 
@@ -39,18 +38,18 @@ func (c *AddTVShowConversation) Name() string {
 	return "addtv"
 }
 
-func (c *AddTVShowConversation) CurrentStep() func(*tb.Message) {
+func (c *AddTVShowConversation) CurrentStep() func(interface{}) {
 	return c.currentStep
 }
 
-func (c *AddTVShowConversation) AskTVShow(m *telebot.Message) func(*tb.Message) {
+func (c *AddTVShowConversation) AskTVShow(m interface{}) func(interface{}) {
 	user := users.User{} // @todo: get from context
 
 	_ = c.bot.Send(user, "What TV Show do you want to search for?")
 
-	return func(m *telebot.Message) {
-		c.TVQuery = m.Text
-
+	return func(m interface{}) {
+		c.TVQuery = c.bot.GetText(m)
+		// @todo: check the query?
 		TVShows, err := c.env.Sonarr.SearchTVShows(c.TVQuery)
 		c.TVShowResults = TVShows
 
@@ -80,7 +79,7 @@ func (c *AddTVShowConversation) AskTVShow(m *telebot.Message) func(*tb.Message) 
 	}
 }
 
-func (c *AddTVShowConversation) AskPickTVShow(m *telebot.Message) func(*tb.Message) {
+func (c *AddTVShowConversation) AskPickTVShow(m interface{}) func(interface{}) {
 	user := users.User{} // @todo: get from context
 
 	// Send custom reply keyboard
@@ -91,11 +90,11 @@ func (c *AddTVShowConversation) AskPickTVShow(m *telebot.Message) func(*tb.Messa
 	options = append(options, "/cancel")
 	_ = c.bot.SendKeyboardList(user, "Which one would you like to download?", options)
 
-	return func(m *telebot.Message) {
+	return func(m interface{}) {
 
 		// Set the selected TVShow
 		for i := range options {
-			if m.Text == options[i] {
+			if c.bot.GetText(m) == options[i] {
 				c.selectedTVShow = &c.TVShowResults[i]
 				break
 			}
@@ -112,7 +111,7 @@ func (c *AddTVShowConversation) AskPickTVShow(m *telebot.Message) func(*tb.Messa
 	}
 }
 
-func (c *AddTVShowConversation) AskPickTVShowSeason(m *telebot.Message) func(*tb.Message) {
+func (c *AddTVShowConversation) AskPickTVShowSeason(m interface{}) func(interface{}) {
 	user := users.User{} // @todo: get from context
 
 	// Send custom reply keyboard
@@ -142,9 +141,9 @@ func (c *AddTVShowConversation) AskPickTVShowSeason(m *telebot.Message) func(*tb
 		_ = c.bot.SendKeyboardList(user, "Which season would you like to download?", options)
 	}
 
-	return func(m *telebot.Message) {
+	return func(m interface{}) {
 
-		if m.Text == "Nope. I'm done!" {
+		if c.bot.GetText(m) == "Nope. I'm done!" {
 			for _, selectedTVShowSeason := range c.selectedTVShow.Seasons {
 				selectedTVShowSeason.Monitored = false
 				for _, chosenSeason := range c.selectedTVShowSeasons {
@@ -159,7 +158,7 @@ func (c *AddTVShowConversation) AskPickTVShowSeason(m *telebot.Message) func(*tb
 
 		// Set the selected TV
 		for i := range options {
-			if m.Text == options[i] {
+			if c.bot.GetText(m) == options[i] {
 				c.selectedTVShowSeasons = append(c.selectedTVShowSeasons, *c.selectedTVShow.Seasons[i])
 				break
 			}
@@ -176,7 +175,7 @@ func (c *AddTVShowConversation) AskPickTVShowSeason(m *telebot.Message) func(*tb
 	}
 }
 
-func (c *AddTVShowConversation) AskPickTVShowQuality(m *telebot.Message) func(*tb.Message) {
+func (c *AddTVShowConversation) AskPickTVShowQuality(m interface{}) func(interface{}) {
 	user := users.User{} // @todo: get from context
 
 	profiles, err := c.env.Sonarr.GetProfile("qualityprofile")
@@ -196,10 +195,10 @@ func (c *AddTVShowConversation) AskPickTVShowQuality(m *telebot.Message) func(*t
 	options = append(options, "/cancel")
 	_ = c.bot.SendKeyboardList(user, "Which quality shall I look for?", options)
 
-	return func(m *telebot.Message) {
+	return func(m interface{}) {
 		// Set the selected option
 		for i := range options {
-			if m.Text == options[i] {
+			if c.bot.GetText(m) == options[i] {
 				c.selectedQualityProfile = &profiles[i]
 				break
 			}
@@ -216,7 +215,7 @@ func (c *AddTVShowConversation) AskPickTVShowQuality(m *telebot.Message) func(*t
 	}
 }
 
-func (c *AddTVShowConversation) AskPickTVShowLanguage(m *telebot.Message) func(*tb.Message) {
+func (c *AddTVShowConversation) AskPickTVShowLanguage(m interface{}) func(interface{}) {
 	user := users.User{} // @todo: get from context
 
 	languages, err := c.env.Sonarr.GetProfile("languageprofile")
@@ -236,10 +235,10 @@ func (c *AddTVShowConversation) AskPickTVShowLanguage(m *telebot.Message) func(*
 	options = append(options, "/cancel")
 	_ = c.bot.SendKeyboardList(user, "Which language shall I look for?", options)
 
-	return func(m *telebot.Message) {
+	return func(m interface{}) {
 		// Set the selected option
 		for i, opt := range options {
-			if m.Text == opt {
+			if c.bot.GetText(m) == opt {
 				c.selectedLanguageProfile = &languages[i]
 				break
 			}
@@ -256,7 +255,7 @@ func (c *AddTVShowConversation) AskPickTVShowLanguage(m *telebot.Message) func(*
 	}
 }
 
-func (c *AddTVShowConversation) AskFolder(m *telebot.Message) func(*tb.Message) {
+func (c *AddTVShowConversation) AskFolder(m interface{}) func(interface{}) {
 	user := users.User{} // @todo: get from context
 
 	folders, err := c.env.Sonarr.GetFolders()
@@ -294,10 +293,10 @@ func (c *AddTVShowConversation) AskFolder(m *telebot.Message) func(*tb.Message) 
 	options = append(options, "/cancel")
 	_ = c.bot.SendKeyboardList(user, "Which folder should it download to?", options)
 
-	return func(m *telebot.Message) {
+	return func(m interface{}) {
 		// Set the selected folder
 		for i, opt := range options {
-			if m.Text == opt {
+			if c.bot.GetText(m) == opt {
 				c.selectedFolder = &c.folderResults[i]
 				break
 			}
@@ -314,7 +313,7 @@ func (c *AddTVShowConversation) AskFolder(m *telebot.Message) func(*tb.Message) 
 	}
 }
 
-func (c *AddTVShowConversation) AddTVShow(m *telebot.Message) {
+func (c *AddTVShowConversation) AddTVShow(m interface{}) {
 	user := users.User{} // @todo: fix
 	_, err := c.env.Sonarr.AddTVShow(*c.selectedTVShow, c.selectedLanguageProfile.ID, c.selectedQualityProfile.ID, c.selectedFolder.Path)
 

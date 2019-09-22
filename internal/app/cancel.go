@@ -10,7 +10,7 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-func (s *Service) HandleCancel(m *tb.Message) {
+func (s *Service) HandleCancel(m interface{}) {
 	user := users.User{}                                                                                   // @todo: get from context
 	_ = s.Bot.Send(user, "There is no active command to cancel. I wasn't doing anything anyway. Zzzzz...") // @todo: handle error
 }

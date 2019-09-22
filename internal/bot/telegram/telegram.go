@@ -2,6 +2,8 @@ package telegram
 
 import (
 	"encoding/json"
+	"errors"
+	"log"
 	"time"
 
 	"github.com/tommy647/gramarr/internal/bot"
@@ -30,13 +32,54 @@ func New(cfg Config) (*Service, error) {
 	}, nil
 }
 
-func (s Service) Start() {
-	s.bot.Start()
+func getTelegramMessage(message interface{}) (*telebot.Message, error) {
+	switch message.(type) {
+	case *telebot.Message:
+		return message.(*telebot.Message), nil
+	}
+	return nil, errors.New("not a telegram message")
 }
 
-func (s *Service) Handle(endpoint interface{}, handler interface{}) {
-	s.bot.Handle(endpoint, handler)
+// @todo: we need to flesh out the type checking here
+func (s Service) IsPrivate(message interface{}) bool {
+	msg, err := getTelegramMessage(message)
+	if err != nil {
+		log.Println("IsPrivate", err.Error())
+		return false // @todo: LOG
+	}
+	return msg.Private()
 }
+
+// @todo: we need to flesh out the type checking here
+func (s Service) GetUserID(message interface{}) interface{} {
+	msg, err := getTelegramMessage(message)
+	if err != nil {
+		log.Println("GetUserID", err.Error())
+		return nil // @todo: LOG
+	}
+	return msg.Sender.ID
+}
+
+func (s Service) GetPayload(message interface{}) interface{} {
+	msg, err := getTelegramMessage(message)
+	if err != nil {
+		log.Println("GetPayload", err.Error())
+		return nil // @todo: LOG
+	}
+	return msg.Payload
+}
+
+func (s Service) GetText(message interface{}) string {
+	msg, err := getTelegramMessage(message)
+	if err != nil {
+		log.Println("GetText", err.Error())
+		return ""
+	}
+	return msg.Text
+}
+
+func (s Service) Start()                                            { s.bot.Start() }
+func (s *Service) Handle(endpoint interface{}, handler interface{}) { s.bot.Handle(endpoint, handler) }
 
 // Send a message to a user via telegram
 // @todo: implement some type switching on the message so we can send strings and photos

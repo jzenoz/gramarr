@@ -16,8 +16,6 @@ import (
 	"github.com/tommy647/gramarr/internal/router"
 	"github.com/tommy647/gramarr/internal/sonarr"
 	"github.com/tommy647/gramarr/internal/users"
-
-	tb "gopkg.in/tucnak/telebot.v2"
 )
 
 // Flags
@@ -80,27 +78,7 @@ func main() {
 		Sonarr: sn,
 	}
 
-	setupHandlers(r, a)
+	app.SetupHandlers(r, a) // @todo refactor
 	log.Print("Gramarr is up and running. Go call your bot!")
 	boter.Start()
-}
-
-func setupHandlers(r *router.Router, a *app.Service) {
-	// Send all telegram messages to our custom router
-	a.Bot.Handle(tb.OnText, r.Route)
-
-	// Commands
-	r.HandleFunc("/auth", a.RequirePrivate(a.RequireAuth(users.UANone, a.HandleAuth)))
-	r.HandleFunc("/start", a.RequirePrivate(a.RequireAuth(users.UANone, a.HandleStart)))
-	r.HandleFunc("/help", a.RequirePrivate(a.RequireAuth(users.UANone, a.HandleStart)))
-	r.HandleFunc("/cancel", a.RequirePrivate(a.RequireAuth(users.UANone, a.HandleCancel)))
-	r.HandleFunc("/addmovie", a.RequirePrivate(a.RequireAuth(users.UAMember, a.HandleAddMovie)))
-	r.HandleFunc("/addtv", a.RequirePrivate(a.RequireAuth(users.UAMember, a.HandleAddTVShow)))
-	r.HandleFunc("/users", a.RequirePrivate(a.RequireAuth(users.UAAdmin, a.HandleUsers)))
-
-	// Catchall Command
-	r.HandleFallback(a.RequirePrivate(a.RequireAuth(users.UANone, a.HandleFallback)))
-
-	// Conversation Commands
-	r.HandleConvoFunc("/cancel", a.HandleConvoCancel)
 }

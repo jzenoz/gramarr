@@ -9,8 +9,8 @@ import (
 )
 
 type Conversation interface {
-	Run(m *tb.Message)
-	CurrentStep() func(*tb.Message)
+	Run(interface{})
+	CurrentStep() func(interface{})
 	Name() string
 }
 
@@ -36,7 +36,7 @@ func (cm *ConversationManager) HasConversation(m *tb.Message) bool {
 	return exists
 }
 
-func (cm *ConversationManager) StartConversation(c Conversation, m *tb.Message) {
+func (cm *ConversationManager) StartConversation(c Conversation, m interface{}) {
 	c.Run(m)
 	cm.convos.SetDefault(cm.convoKey(m), c)
 }
@@ -55,6 +55,6 @@ func (cm *ConversationManager) Conversation(m *tb.Message) (Conversation, bool) 
 	return c.(Conversation), exists
 }
 
-func (cm *ConversationManager) convoKey(m *tb.Message) string {
-	return fmt.Sprintf("%d:%d", m.Chat.ID, m.Sender.ID)
+func (cm *ConversationManager) convoKey(m interface{}) string {
+	return fmt.Sprint("% d:% d m.Chat.ID, m.Sender.ID") // @todo: fix
 }

@@ -4,11 +4,9 @@ import (
 	"strings"
 
 	"github.com/tommy647/gramarr/internal/users"
-
-	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-func (s *Service) HandleFallback(m *tb.Message) {
+func (s *Service) HandleFallback(m interface{}) {
 	user := users.User{} // @todo: get from context
 
 	var msg []string

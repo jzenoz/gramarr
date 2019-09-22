@@ -3,6 +3,7 @@ package app
 import "C"
 import (
 	"fmt"
+	"log"
 	"path/filepath"
 	"strings"
 
@@ -10,7 +11,6 @@ import (
 
 	"github.com/tommy647/gramarr/internal/radarr"
 	"github.com/tommy647/gramarr/internal/util"
-	"gopkg.in/tucnak/telebot.v2"
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
@@ -19,7 +19,7 @@ func NewAddMovieConversation(e *Service) *AddMovieConversation {
 }
 
 type AddMovieConversation struct {
-	currentStep            func(*tb.Message)
+	currentStep            func(interface{})
 	movieQuery             string
 	movieResults           []radarr.Movie
 	folderResults          []radarr.Folder
@@ -30,7 +30,7 @@ type AddMovieConversation struct {
 	bot                    Bot
 }
 
-func (c *AddMovieConversation) Run(m *tb.Message) {
+func (c *AddMovieConversation) Run(m interface{}) {
 	c.currentStep = c.AskMovie(m)
 }
 
@@ -38,16 +38,20 @@ func (c *AddMovieConversation) Name() string {
 	return "addmovie"
 }
 
-func (c *AddMovieConversation) CurrentStep() func(*telebot.Message) {
+func (c *AddMovieConversation) CurrentStep() func(interface{}) {
 	return c.currentStep
 }
 
-func (c *AddMovieConversation) AskMovie(m *tb.Message) func(*telebot.Message) {
+func (c *AddMovieConversation) AskMovie(m interface{}) func(interface{}) {
 	user := users.User{}                                          // @todo: fix
 	_ = c.bot.Send(user, "What movie do you want to search for?") // @todo: handle error
 
-	return func(m *tb.Message) {
-		c.movieQuery = m.Text
+	return func(m interface{}) {
+		c.movieQuery = c.bot.GetText(m)
+		if c.movieQuery == "" {
+			log.Println("empty message??")
+			return
+		}
 
 		movies, err := c.env.Radarr.SearchMovies(c.movieQuery)
 		c.movieResults = movies
@@ -78,7 +82,7 @@ func (c *AddMovieConversation) AskMovie(m *tb.Message) func(*telebot.Message) {
 	}
 }
 
-func (c *AddMovieConversation) AskPickMovie(m *tb.Message) func(*telebot.Message) {
+func (c *AddMovieConversation) AskPickMovie(m interface{}) func(interface{}) {
 	user := users.User{} // @todo: fix
 	// Send custom reply keyboard
 	var options []string
@@ -88,10 +92,10 @@ func (c *AddMovieConversation) AskPickMovie(m *tb.Message) func(*telebot.Message
 	options = append(options, "/cancel")
 	_ = c.bot.SendKeyboardList(user, "Which one would you like to download?", options) // @todo: handle error
 
-	return func(m *tb.Message) {
+	return func(m interface{}) {
 		// Set the selected movie
 		for i, opt := range options {
-			if m.Text == opt {
+			if c.bot.GetText(m) == opt {
 				c.selectedMovie = &c.movieResults[i]
 				break
 			}
@@ -108,7 +112,7 @@ func (c *AddMovieConversation) AskPickMovie(m *tb.Message) func(*telebot.Message
 	}
 }
 
-func (c *AddMovieConversation) AskPickMovieQuality(m *tb.Message) func(*telebot.Message) {
+func (c *AddMovieConversation) AskPickMovieQuality(m interface{}) func(interface{}) {
 	user := users.User{} // @todo: fix
 	profiles, err := c.env.Radarr.GetProfile("profile")
 
@@ -127,10 +131,10 @@ func (c *AddMovieConversation) AskPickMovieQuality(m *tb.Message) func(*telebot.
 	options = append(options, "/cancel")
 	_ = c.bot.SendKeyboardList(user, "Which quality shall I look for?", options) // @todo: handle error
 
-	return func(m *tb.Message) {
+	return func(m interface{}) {
 		// Set the selected option
 		for i := range options {
-			if m.Text == options[i] {
+			if c.bot.GetText(m) == options[i] {
 				c.selectedQualityProfile = &profiles[i]
 				break
 			}
@@ -147,7 +151,7 @@ func (c *AddMovieConversation) AskPickMovieQuality(m *tb.Message) func(*telebot.
 	}
 }
 
-func (c *AddMovieConversation) AskFolder(m *tb.Message) func(*telebot.Message) {
+func (c *AddMovieConversation) AskFolder(m interface{}) func(interface{}) {
 	user := users.User{} // @todo: fix
 	folders, err := c.env.Radarr.GetFolders()
 	c.folderResults = folders
@@ -184,10 +188,10 @@ func (c *AddMovieConversation) AskFolder(m *tb.Message) func(*telebot.Message) {
 	options = append(options, "/cancel")
 	_ = c.bot.SendKeyboardList(user, "Which folder should it download to?", options) // @todo: handle error
 
-	return func(m *tb.Message) {
+	return func(m interface{}) {
 		// Set the selected folder
 		for i, opt := range options {
-			if m.Text == opt {
+			if c.bot.GetText(m) == opt {
 				c.selectedFolder = &c.folderResults[i]
 				break
 			}
@@ -204,7 +208,7 @@ func (c *AddMovieConversation) AskFolder(m *tb.Message) func(*telebot.Message) {
 	}
 }
 
-func (c *AddMovieConversation) AddMovie(m *tb.Message) {
+func (c *AddMovieConversation) AddMovie(m interface{}) {
 	user := users.User{} // @todo: fix this, user in context
 	_, err := c.env.Radarr.AddMovie(*c.selectedMovie, c.selectedQualityProfile.ID, c.selectedFolder.Path)
 

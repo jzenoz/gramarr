@@ -6,8 +6,6 @@ import (
 
 	"github.com/tommy647/gramarr/internal/users"
 	"github.com/tommy647/gramarr/internal/util"
-
-	"gopkg.in/tucnak/telebot.v2"
 )
 
 // Service our auth handling service
@@ -30,10 +28,14 @@ func New(cfg Config, opts ...Options) *Service {
 	return s
 }
 
-func (s *Service) Auth(m *telebot.Message) {
+func (s *Service) Auth(m interface{}) {
 	var msg []string
-	pass := m.Payload
-	user, exists := s.users.User(m.Sender.ID)
+
+	pass := s.bot.GetPayload(m)
+
+	userID := s.bot.GetUserID(m)
+
+	user, exists := s.users.User(userID)
 
 	// Empty Password?
 	if pass == "" {
@@ -115,6 +117,6 @@ func (s *Service) Auth(m *telebot.Message) {
 
 	// Notify Admin
 	adminMsg := "%s made an invalid auth request with password: %s"
-	adminMsg = fmt.Sprintf(adminMsg, user.DisplayName(), util.EscapeMarkdown(m.Payload))
+	adminMsg = fmt.Sprintf(adminMsg, user.DisplayName(), util.EscapeMarkdown(s.bot.GetPayload(m).(string)))
 	_ = s.bot.SendToAdmins(adminMsg) // @todo: handle error
 }

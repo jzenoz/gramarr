@@ -1,9 +1,5 @@
 package app
 
-import (
-	"gopkg.in/tucnak/telebot.v2"
-)
-
-func (s *Service) HandleAddMovie(m *telebot.Message) {
+func (s *Service) HandleAddMovie(m interface{}) {
 	s.CM.StartConversation(NewAddMovieConversation(s), m)
 }

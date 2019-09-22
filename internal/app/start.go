@@ -3,13 +3,11 @@ package app
 import (
 	"fmt"
 	"strings"
-
-	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-func (s *Service) HandleStart(m *tb.Message) {
-
-	user, exists := s.Users.User(m.Sender.ID)
+func (s *Service) HandleStart(m interface{}) {
+	userID := s.Bot.GetText(m)
+	user, exists := s.Users.User(userID)
 
 	var msg []string
 	msg = append(msg, fmt.Sprintf("Hello, I'm %s! Use these commands to control me:", s.Bot.Name()))
