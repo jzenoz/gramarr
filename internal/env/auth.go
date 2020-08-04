@@ -6,10 +6,10 @@ import (
 
 	"github.com/memodota/gramarr/internal/users"
 	"github.com/memodota/gramarr/internal/util"
-	tb "gopkg.in/tucnak/telebot.v2"
+	"gopkg.in/tucnak/telebot.v2"
 )
 
-func (e *Env) HandleAuth(m *tb.Message) {
+func (e *Env) HandleAuth(m *telebot.Message) {
 	var msg []string
 	pass := m.Payload
 	user, exists := e.Users.User(m.Sender.ID)

@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/memodota/gramarr/internal/util"
-	tb "gopkg.in/tucnak/telebot.v2"
+	"gopkg.in/tucnak/telebot.v2"
 )
 
-func (e *Env) HandleStart(m *tb.Message) {
+func (e *Env) HandleStart(m *telebot.Message) {
 
 	user, exists := e.Users.User(m.Sender.ID)
 

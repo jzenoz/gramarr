@@ -6,14 +6,14 @@ import (
 
 	"github.com/memodota/gramarr/internal/conversation"
 	"github.com/memodota/gramarr/internal/util"
-	tb "gopkg.in/tucnak/telebot.v2"
+	"gopkg.in/tucnak/telebot.v2"
 )
 
-func (e *Env) HandleCancel(m *tb.Message) {
+func (e *Env) HandleCancel(m *telebot.Message) {
 	util.Send(e.Bot, m.Sender, "There is no active command to cancel. I wasn't doing anything anyway. Zzzzz...")
 }
 
-func (e *Env) HandleConvoCancel(c conversation.Conversation, m *tb.Message) {
+func (e *Env) HandleConvoCancel(c conversation.Conversation, m *telebot.Message) {
 	var cancelkeyboard []string
 	cancelkeyboard = append(cancelkeyboard, "/help")
 	util.SendKeyboardList(e.Bot, m.Sender, "", cancelkeyboard)

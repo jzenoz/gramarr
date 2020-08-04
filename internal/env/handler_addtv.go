@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 
 	"gopkg.in/tucnak/telebot.v2"
-	tb "gopkg.in/tucnak/telebot.v2"
 )
 
 func (e *Env) HandleAddTVShow(m *telebot.Message) {
@@ -23,7 +22,7 @@ func NewAddTVShowConversation(e *Env) *AddTVShowConversation {
 }
 
 type AddTVShowConversation struct {
-	currentStep             func(*tb.Message)
+	currentStep             func(*telebot.Message)
 	TVQuery                 string
 	TVShowResults           []sonarr.TVShow
 	folderResults           []sonarr.Folder
@@ -44,11 +43,11 @@ func (c *AddTVShowConversation) Name() string {
 	return "addtv"
 }
 
-func (c *AddTVShowConversation) CurrentStep() func(*tb.Message) {
+func (c *AddTVShowConversation) CurrentStep() func(*telebot.Message) {
 	return c.currentStep
 }
 
-func (c *AddTVShowConversation) AskTVShow(m *telebot.Message) func(*tb.Message) {
+func (c *AddTVShowConversation) AskTVShow(m *telebot.Message) func(*telebot.Message) {
 	util.Send(c.env.Bot, m.Sender, "What tv show do you want to search for?")
 
 	return func(m *telebot.Message) {
@@ -83,7 +82,7 @@ func (c *AddTVShowConversation) AskTVShow(m *telebot.Message) func(*tb.Message) 
 	}
 }
 
-func (c *AddTVShowConversation) AskPickTVShow(m *telebot.Message) func(*tb.Message) {
+func (c *AddTVShowConversation) AskPickTVShow(m *telebot.Message) func(*telebot.Message) {
 
 	// Send custom reply keyboard
 	var options []string
@@ -114,7 +113,7 @@ func (c *AddTVShowConversation) AskPickTVShow(m *telebot.Message) func(*tb.Messa
 	}
 }
 
-func (c *AddTVShowConversation) AskPickTVShowSeason(m *telebot.Message) func(*tb.Message) {
+func (c *AddTVShowConversation) AskPickTVShowSeason(m *telebot.Message) func(*telebot.Message) {
 
 	// Send custom reply keyboard
 	var options []string
@@ -177,7 +176,7 @@ func (c *AddTVShowConversation) AskPickTVShowSeason(m *telebot.Message) func(*tb
 	}
 }
 
-func (c *AddTVShowConversation) AskPickTVShowQuality(m *telebot.Message) func(*tb.Message) {
+func (c *AddTVShowConversation) AskPickTVShowQuality(m *telebot.Message) func(*telebot.Message) {
 
 	profiles, err := c.env.Sonarr.GetProfile("profile")
 
@@ -217,7 +216,7 @@ func (c *AddTVShowConversation) AskPickTVShowQuality(m *telebot.Message) func(*t
 	}
 }
 
-func (c *AddTVShowConversation) AskPickTVShowLanguage(m *telebot.Message) func(*tb.Message) {
+func (c *AddTVShowConversation) AskPickTVShowLanguage(m *telebot.Message) func(*telebot.Message) {
 
 	languages, err := c.env.Sonarr.GetProfile("languageprofile")
 
@@ -256,7 +255,7 @@ func (c *AddTVShowConversation) AskPickTVShowLanguage(m *telebot.Message) func(*
 	}
 }
 
-func (c *AddTVShowConversation) AskFolder(m *telebot.Message) func(*tb.Message) {
+func (c *AddTVShowConversation) AskFolder(m *telebot.Message) func(*telebot.Message) {
 
 	folders, err := c.env.Sonarr.GetFolders()
 	c.folderResults = folders
@@ -313,7 +312,7 @@ func (c *AddTVShowConversation) AskFolder(m *telebot.Message) func(*tb.Message) 
 	}
 }
 
-func (c *AddTVShowConversation) AskSeriesType(m *telebot.Message) func(*tb.Message) {
+func (c *AddTVShowConversation) AskSeriesType(m *telebot.Message) func(*telebot.Message) {
 	var options []string
 	options = append(options, "anime")
 	options = append(options, "standard")

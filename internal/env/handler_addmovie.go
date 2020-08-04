@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 
 	"gopkg.in/tucnak/telebot.v2"
-	tb "gopkg.in/tucnak/telebot.v2"
 )
 
 func (e *Env) HandleAddMovie(m *telebot.Message) {
@@ -22,7 +21,7 @@ func NewAddMovieConversation(e *Env) *AddMovieConversation {
 }
 
 type AddMovieConversation struct {
-	currentStep            func(*tb.Message)
+	currentStep            func(*telebot.Message)
 	movieQuery             string
 	movieResults           []radarr.Movie
 	folderResults          []radarr.Folder
@@ -32,7 +31,7 @@ type AddMovieConversation struct {
 	env                    *Env
 }
 
-func (c *AddMovieConversation) Run(m *tb.Message) {
+func (c *AddMovieConversation) Run(m *telebot.Message) {
 	c.currentStep = c.AskMovie(m)
 }
 
@@ -40,14 +39,14 @@ func (c *AddMovieConversation) Name() string {
 	return "addmovie"
 }
 
-func (c *AddMovieConversation) CurrentStep() func(*tb.Message) {
+func (c *AddMovieConversation) CurrentStep() func(*telebot.Message) {
 	return c.currentStep
 }
 
-func (c *AddMovieConversation) AskMovie(m *tb.Message) func(*tb.Message) {
+func (c *AddMovieConversation) AskMovie(m *telebot.Message) func(*telebot.Message) {
 	util.Send(c.env.Bot, m.Sender, "What movie do you want to search for?")
 
-	return func(m *tb.Message) {
+	return func(m *telebot.Message) {
 		c.movieQuery = m.Text
 
 		movies, err := c.env.Radarr.SearchMovies(c.movieQuery)
@@ -79,7 +78,7 @@ func (c *AddMovieConversation) AskMovie(m *tb.Message) func(*tb.Message) {
 	}
 }
 
-func (c *AddMovieConversation) AskPickMovie(m *tb.Message) func(*tb.Message) {
+func (c *AddMovieConversation) AskPickMovie(m *telebot.Message) func(*telebot.Message) {
 
 	// Send custom reply keyboard
 	var options []string
@@ -89,7 +88,7 @@ func (c *AddMovieConversation) AskPickMovie(m *tb.Message) func(*tb.Message) {
 	options = append(options, "/cancel")
 	util.SendKeyboardList(c.env.Bot, m.Sender, "Which one would you like to download?", options)
 
-	return func(m *tb.Message) {
+	return func(m *telebot.Message) {
 
 		// Set the selected movie
 		for i, opt := range options {
@@ -110,7 +109,7 @@ func (c *AddMovieConversation) AskPickMovie(m *tb.Message) func(*tb.Message) {
 	}
 }
 
-func (c *AddMovieConversation) AskPickMovieQuality(m *tb.Message) func(*tb.Message) {
+func (c *AddMovieConversation) AskPickMovieQuality(m *telebot.Message) func(*telebot.Message) {
 
 	profiles, err := c.env.Radarr.GetProfile("profile")
 
@@ -129,7 +128,7 @@ func (c *AddMovieConversation) AskPickMovieQuality(m *tb.Message) func(*tb.Messa
 	options = append(options, "/cancel")
 	util.SendKeyboardList(c.env.Bot, m.Sender, "Which quality shall I look for?", options)
 
-	return func(m *tb.Message) {
+	return func(m *telebot.Message) {
 		// Set the selected option
 		for i := range options {
 			if m.Text == options[i] {
@@ -149,7 +148,7 @@ func (c *AddMovieConversation) AskPickMovieQuality(m *tb.Message) func(*tb.Messa
 	}
 }
 
-func (c *AddMovieConversation) AskFolder(m *tb.Message) func(*tb.Message) {
+func (c *AddMovieConversation) AskFolder(m *telebot.Message) func(*telebot.Message) {
 
 	folders, err := c.env.Radarr.GetFolders()
 	c.folderResults = folders
@@ -186,7 +185,7 @@ func (c *AddMovieConversation) AskFolder(m *tb.Message) func(*tb.Message) {
 	options = append(options, "/cancel")
 	util.SendKeyboardList(c.env.Bot, m.Sender, "Which folder should it download to?", options)
 
-	return func(m *tb.Message) {
+	return func(m *telebot.Message) {
 		// Set the selected folder
 		for i, opt := range options {
 			if m.Text == opt {
@@ -206,7 +205,7 @@ func (c *AddMovieConversation) AskFolder(m *tb.Message) func(*tb.Message) {
 	}
 }
 
-func (c *AddMovieConversation) AddMovie(m *tb.Message) {
+func (c *AddMovieConversation) AddMovie(m *telebot.Message) {
 	_, err := c.env.Radarr.AddMovie(*c.selectedMovie, c.selectedQualityProfile.ID, c.selectedFolder.Path)
 
 	// Failed to add movie
@@ -217,7 +216,7 @@ func (c *AddMovieConversation) AddMovie(m *tb.Message) {
 	}
 
 	if c.selectedMovie.PosterURL != "" {
-		photo := &tb.Photo{File: tb.FromURL(c.selectedMovie.PosterURL)}
+		photo := &telebot.Photo{File: telebot.FromURL(c.selectedMovie.PosterURL)}
 		c.env.Bot.Send(m.Sender, photo)
 	}
 

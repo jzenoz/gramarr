@@ -10,20 +10,20 @@ import (
 	"github.com/memodota/gramarr/internal/sonarr"
 	"github.com/memodota/gramarr/internal/users"
 	"github.com/memodota/gramarr/internal/util"
-	tb "gopkg.in/tucnak/telebot.v2"
+	"gopkg.in/tucnak/telebot.v2"
 )
 
 type Env struct {
 	Config *config.Config
 	Users  *users.UserDB
-	Bot    *tb.Bot
+	Bot    *telebot.Bot
 	CM     *conversation.ConversationManager
 	Radarr *radarr.Client
 	Sonarr *sonarr.Client
 }
 
-func (e *Env) RequirePrivate(h func(m *tb.Message)) func(m *tb.Message) {
-	return func(m *tb.Message) {
+func (e *Env) RequirePrivate(h func(m *telebot.Message)) func(m *telebot.Message) {
+	return func(m *telebot.Message) {
 		if !m.Private() {
 			return
 		}
@@ -31,8 +31,8 @@ func (e *Env) RequirePrivate(h func(m *tb.Message)) func(m *tb.Message) {
 	}
 }
 
-func (e *Env) RequireAuth(access users.UserAccess, h func(m *tb.Message)) func(m *tb.Message) {
-	return func(m *tb.Message) {
+func (e *Env) RequireAuth(access users.UserAccess, h func(m *telebot.Message)) func(m *telebot.Message) {
+	return func(m *telebot.Message) {
 		user, _ := e.Users.User(m.Sender.ID)
 		var msg []string
 
