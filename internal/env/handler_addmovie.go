@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/memodota/gramarr/internal/radarr"
-	"github.com/memodota/gramarr/internal/util"
+	"github.com/jzenoz/gramarr/internal/radarr"
+	"github.com/jzenoz/gramarr/internal/util"
 
 	"path/filepath"
 

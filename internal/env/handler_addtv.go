@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/memodota/gramarr/internal/sonarr"
-	"github.com/memodota/gramarr/internal/util"
+	"github.com/jzenoz/gramarr/internal/sonarr"
+	"github.com/jzenoz/gramarr/internal/util"
 
 	"path/filepath"
 

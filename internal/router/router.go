@@ -3,7 +3,7 @@ package router
 import (
 	"regexp"
 
-	"github.com/memodota/gramarr/internal/conversation"
+	"github.com/jzenoz/gramarr/internal/conversation"
 	"gopkg.in/tucnak/telebot.v2"
 )
 

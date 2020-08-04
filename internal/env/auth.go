@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/memodota/gramarr/internal/users"
-	"github.com/memodota/gramarr/internal/util"
+	"github.com/jzenoz/gramarr/internal/users"
+	"github.com/jzenoz/gramarr/internal/util"
 	"gopkg.in/tucnak/telebot.v2"
 )
 

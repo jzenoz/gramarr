@@ -3,7 +3,7 @@ package env
 import (
 	"strings"
 
-	"github.com/memodota/gramarr/internal/util"
+	"github.com/jzenoz/gramarr/internal/util"
 	"gopkg.in/tucnak/telebot.v2"
 )
 
