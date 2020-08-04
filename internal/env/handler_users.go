@@ -1,9 +1,10 @@
 package env
 
 import (
+	"strings"
+
 	"github.com/memodota/gramarr/internal/util"
 	tb "gopkg.in/tucnak/telebot.v2"
-	"strings"
 )
 
 func (e *Env) HandleUsers(m *tb.Message) {

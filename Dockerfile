@@ -1,4 +1,4 @@
-FROM golang:1.13-alpine AS build
+            "program": "${workspaceFolder}",FROM golang:1.13-alpine AS build
 RUN mkdir /app
 WORKDIR /app
 

@@ -17,22 +17,39 @@ A [Radarr](https://github.com/Radarr/Radarr)/[Sonarr](https://github.com/Sonarr/
 
 ## Requirements
 
+- A running instance of Radarr
+- A running instance of Sonarr V3 (preview)
+
 ### If running from source
 
-- Go
+- [Go](https://golang.org/)
+
+### If running from docker
+
+- [Docker](https://docker.io)
+- [Docker Compose](https://docs.docker.com/compose/)
 
 ## Configuration
 
 - Copy the `config.json.template` file to `config.json` and set-up your configuration;
-- Put the `config.json` alongside with the binary downloaded from [releases](https://github.com/alcmoraes/gramarr/releases);
+
+#### If running from downloaded binaries
+- Put the copied `config.json` alongside with the binary downloaded from [releases](https://github.com/memodota/gramarr/releases);
 
 ## Running it
+
+### From Docker
+
+```bash
+$ docker-compose up -d
+```
 
 ### From source
 
 ```bash
 $ go get github.com/memodota/gramarr
 $ cd $GOPATH/src/github.com/memodota/gramarr
+$ go get
 $ go run .
 ```
 
@@ -42,13 +59,5 @@ Just [download](https://github.com/memodota/gramarr/releases/latest) the respect
 
 *Obs: Don't forget to put the `config.json` in the same folder as the binary file.*
 
-### In docker
-
-- copy file `config.json.template` to `config.json` to "yourwayonhost"
-- docker pull memodota/gramarrru:latest
-- run in docker   -   docker run -d --name=sonarr-radarr-telegram-bot --restart=always -v yourwayonhost:/config memodota/gramarrru
-
 ## TODO
 
-- Fully translate to Russian
-- Make language selectable in config file

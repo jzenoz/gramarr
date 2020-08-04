@@ -12,8 +12,8 @@ type Movie struct {
 	PosterURL string       `json:"remotePoster"`
 	TMDBID    int          `json:"tmdbId"`
 	Images    []MovieImage `json:"images"`
-	Path                  string             `json:"path,omitempty"`
-	Monitored             bool               `json:"monitored,omitempty"`
+	Path      string       `json:"path,omitempty"`
+	Monitored bool         `json:"monitored,omitempty"`
 }
 
 func (m Movie) String() string {
@@ -58,12 +58,12 @@ type AddMovieOptions struct {
 }
 
 type RadarrQueue struct {
-	Movie             			Movie          `json:"movie,omitempty"`
+	Movie Movie `json:"movie,omitempty"`
 	//Quality          			Quality   	    `json:"quality,omitempty"`
-	Size						int64           `json:"sizeOnDisk,omitempty"`
-	sizeleft 					int64 		    `json:"sizeleft,omitempty"`
-	timeleft 					time.Time 		`json:"timeleft,omitempty"`
-	estimatedCompletionTime  time.Time 		`json:"estimatedCompletionTime,omitempty"`
-	status 						string 			`json:"status,omitempty"`
-	trackedDownloadStatus 	string 			`json:"trackedDownloadStatus,omitempty"`
+	Size                    int64     `json:"sizeOnDisk,omitempty"`
+	sizeleft                int64     `json:"sizeleft,omitempty"`
+	timeleft                time.Time `json:"timeleft,omitempty"`
+	estimatedCompletionTime time.Time `json:"estimatedCompletionTime,omitempty"`
+	status                  string    `json:"status,omitempty"`
+	trackedDownloadStatus   string    `json:"trackedDownloadStatus,omitempty"`
 }

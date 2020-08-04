@@ -5,9 +5,7 @@ import (
 	"strings"
 
 	"github.com/memodota/gramarr/internal/users"
-
 	"github.com/memodota/gramarr/internal/util"
-
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
@@ -18,15 +16,15 @@ func (e *Env) HandleAuth(m *tb.Message) {
 
 	// Empty Password?
 	if pass == "" {
-		util.Send(e.Bot, m.Sender, "Необходимо ввести: `/auth [*ваш пароль*]`")
+		util.Send(e.Bot, m.Sender, "Usage: `/auth [password]`")
 		return
 	}
 
 	// Is User Already Admin?
 	if exists && user.IsAdmin() {
 		// Notify User
-		msg = append(msg, "Че те нада ты уже авторизован.")
-		msg = append(msg, "Пиши /start чтобы начать.")
+		msg = append(msg, "You're already authorized.")
+		msg = append(msg, "Type /start to begin.")
 		util.Send(e.Bot, m.Sender, strings.Join(msg, "\n"))
 		return
 	}
@@ -48,12 +46,12 @@ func (e *Env) HandleAuth(m *tb.Message) {
 		}
 
 		// Notify User
-		msg = append(msg, "Хозяин ты вернулся. А я че, я ниче")
-		msg = append(msg, "Напиши пожалуйста /start чтобы начать.")
+		msg = append(msg, "You have been authorized as an *admin*.")
+		msg = append(msg, "Type /start to begin.")
 		util.Send(e.Bot, m.Sender, strings.Join(msg, "\n"))
 
 		// Notify Admin
-		adminMsg := fmt.Sprintf("%s предоставили права админа.", util.DisplayName(m.Sender))
+		adminMsg := fmt.Sprintf("%s has been granted admin access.", util.DisplayName(m.Sender))
 		util.SendAdmin(e.Bot, e.Users.Admins(), adminMsg)
 
 		return
@@ -63,7 +61,7 @@ func (e *Env) HandleAuth(m *tb.Message) {
 	if pass == e.Config.Bot.Password {
 		if exists {
 			// Notify User
-			msg = append(msg, "Че те нада ты уже авторизован.")
+			msg = append(msg, "You're already authorized.")
 			msg = append(msg, "Type /start to begin.")
 			util.Send(e.Bot, m.Sender, strings.Join(msg, "\n"))
 			return
@@ -78,21 +76,21 @@ func (e *Env) HandleAuth(m *tb.Message) {
 		e.Users.Create(newUser)
 
 		// Notify User
-		msg = append(msg, "Вы били авторизованы.")
-		msg = append(msg, "Пишите /start чтобы начать.")
+		msg = append(msg, "You have been authorized.")
+		msg = append(msg, "Type /start to begin.")
 		util.Send(e.Bot, m.Sender, strings.Join(msg, "\n"))
 
 		// Notify Admin
-		adminMsg := fmt.Sprintf("%s был предоставлен доступ.", util.DisplayName(m.Sender))
+		adminMsg := fmt.Sprintf("%s has been granted acccess.", util.DisplayName(m.Sender))
 		util.SendAdmin(e.Bot, e.Users.Admins(), adminMsg)
 		return
 	}
 
 	// Notify User
-	util.SendError(e.Bot, m.Sender, "Твой пароль не верен. Начинаю обратный отсчет до активации режима охраны.")
+	util.SendError(e.Bot, m.Sender, "Your password is invalid.")
 
 	// Notify Admin
-	adminMsg := "%s сделал не верную попытку войти: %s"
+	adminMsg := "%s made an invalid auth request with password: %s"
 	adminMsg = fmt.Sprintf(adminMsg, util.DisplayName(m.Sender), util.EscapeMarkdown(m.Payload))
 	util.SendAdmin(e.Bot, e.Users.Admins(), adminMsg)
 }

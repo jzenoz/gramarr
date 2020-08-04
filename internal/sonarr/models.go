@@ -3,14 +3,14 @@ package sonarr
 import "fmt"
 
 type TVShow struct {
-	Title     string          `json:"title"`
-	TitleSlug string          `json:"titleSlug"`
-	Year      int             `json:"year"`
-	PosterURL string          `json:"remotePoster"`
-	TVDBID    int             `json:"tvdbId"`
-	Images    []TVShowImage   `json:"images"`
-	Seasons   []*TVShowSeason `json:"seasons"`
-	SeriesType string 		`json:"seriesType"`
+	Title      string          `json:"title"`
+	TitleSlug  string          `json:"titleSlug"`
+	Year       int             `json:"year"`
+	PosterURL  string          `json:"remotePoster"`
+	TVDBID     int             `json:"tvdbId"`
+	Images     []TVShowImage   `json:"images"`
+	Seasons    []*TVShowSeason `json:"seasons"`
+	SeriesType string          `json:"seriesType"`
 }
 
 func (m TVShow) String() string {
@@ -54,7 +54,7 @@ type AddTVShowRequest struct {
 	AddOptions        AddTVShowOptions `json:"addOptions"`
 	Year              int              `json:"year"`
 	Seasons           []*TVShowSeason  `json:"seasons"`
-	SeriesType string 		`json:"seriesType"`
+	SeriesType        string           `json:"seriesType"`
 }
 
 type AddTVShowOptions struct {
