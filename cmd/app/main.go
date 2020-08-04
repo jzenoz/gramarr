@@ -6,15 +6,15 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/memodota/gramarr/internal/config"
-	"github.com/memodota/gramarr/internal/conversation"
-	"github.com/memodota/gramarr/internal/env"
-	"github.com/memodota/gramarr/internal/radarr"
-	"github.com/memodota/gramarr/internal/router"
-	"github.com/memodota/gramarr/internal/sonarr"
-	"github.com/memodota/gramarr/internal/users"
+	"github.com/jzenoz/gramarr/internal/config"
+	"github.com/jzenoz/gramarr/internal/conversation"
+	"github.com/jzenoz/gramarr/internal/env"
+	"github.com/jzenoz/gramarr/internal/radarr"
+	"github.com/jzenoz/gramarr/internal/router"
+	"github.com/jzenoz/gramarr/internal/sonarr"
+	"github.com/jzenoz/gramarr/internal/users"
 
-	tb "gopkg.in/tucnak/telebot.v2"
+	"gopkg.in/tucnak/telebot.v2"
 )
 
 // Flags
@@ -58,8 +58,8 @@ func main() {
 	cm := conversation.NewConversationManager()
 	r := router.NewRouter(cm)
 
-	poller := tb.LongPoller{Timeout: 15 * time.Second}
-	bot, err := tb.NewBot(tb.Settings{
+	poller := telebot.LongPoller{Timeout: 15 * time.Second}
+	bot, err := telebot.NewBot(telebot.Settings{
 		Token:  conf.Telegram.BotToken,
 		Poller: &poller,
 	})
@@ -83,7 +83,7 @@ func main() {
 
 func setupHandlers(r *router.Router, e *env.Env) {
 	// Send all telegram messages to our custom router
-	e.Bot.Handle(tb.OnText, r.Route)
+	e.Bot.Handle(telebot.OnText, r.Route)
 
 	// Commands
 	r.HandleFunc("/auth", e.RequirePrivate(e.RequireAuth(users.UANone, e.HandleAuth)))
