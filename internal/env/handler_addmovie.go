@@ -7,8 +7,6 @@ import (
 	"github.com/jzenoz/gramarr/internal/radarr"
 	"github.com/jzenoz/gramarr/internal/util"
 
-	"path/filepath"
-
 	"gopkg.in/tucnak/telebot.v2"
 )
 
@@ -173,14 +171,14 @@ func (c *AddMovieConversation) AskFolder(m *telebot.Message) func(*telebot.Messa
 	var msg []string
 	msg = append(msg, fmt.Sprintf("*Found %d folders:*", len(folders)))
 	for i, folder := range folders {
-		msg = append(msg, fmt.Sprintf("%d) %s", i+1, util.EscapeMarkdown(filepath.Base(folder.Path))))
+		msg = append(msg, fmt.Sprintf("%d) %s", i+1, util.EscapeMarkdown(folder.Path)))
 	}
 	util.Send(c.env.Bot, m.Sender, strings.Join(msg, "\n"))
 
 	// Send the custom reply keyboard
 	var options []string
 	for _, folder := range folders {
-		options = append(options, fmt.Sprintf("%s", filepath.Base(folder.Path)))
+		options = append(options, fmt.Sprintf("%s", folder.Path))
 	}
 	options = append(options, "/cancel")
 	util.SendKeyboardList(c.env.Bot, m.Sender, "Which folder should it download to?", options)
