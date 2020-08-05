@@ -7,6 +7,7 @@ import (
 	"gopkg.in/tucnak/telebot.v2"
 )
 
+// HandleFallback is for telegram canned message when command not recognized
 func (e *Env) HandleFallback(m *telebot.Message) {
 	var msg []string
 	msg = append(msg, "I'm sorry, I don't recognize that command.")

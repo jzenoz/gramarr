@@ -13,15 +13,16 @@ import (
 	"gopkg.in/tucnak/telebot.v2"
 )
 
+// HandleAddTVShow handles telegram conversation flow for adding a tv show
 func (e *Env) HandleAddTVShow(m *telebot.Message) {
-	e.CM.StartConversation(NewAddTVShowConversation(e), m)
+	e.CM.StartConversation(newAddTVShowConversation(e), m)
 }
 
-func NewAddTVShowConversation(e *Env) *AddTVShowConversation {
-	return &AddTVShowConversation{env: e}
+func newAddTVShowConversation(e *Env) *addTVShowConversation {
+	return &addTVShowConversation{env: e}
 }
 
-type AddTVShowConversation struct {
+type addTVShowConversation struct {
 	currentStep             func(*telebot.Message)
 	TVQuery                 string
 	TVShowResults           []sonarr.TVShow
@@ -35,19 +36,19 @@ type AddTVShowConversation struct {
 	selectedType            string
 }
 
-func (c *AddTVShowConversation) Run(m *telebot.Message) {
+func (c *addTVShowConversation) Run(m *telebot.Message) {
 	c.currentStep = c.AskTVShow(m)
 }
 
-func (c *AddTVShowConversation) Name() string {
+func (c *addTVShowConversation) Name() string {
 	return "addtv"
 }
 
-func (c *AddTVShowConversation) CurrentStep() func(*telebot.Message) {
+func (c *addTVShowConversation) CurrentStep() func(*telebot.Message) {
 	return c.currentStep
 }
 
-func (c *AddTVShowConversation) AskTVShow(m *telebot.Message) func(*telebot.Message) {
+func (c *addTVShowConversation) AskTVShow(m *telebot.Message) func(*telebot.Message) {
 	util.Send(c.env.Bot, m.Sender, "What tv show do you want to search for?")
 
 	return func(m *telebot.Message) {
@@ -82,7 +83,7 @@ func (c *AddTVShowConversation) AskTVShow(m *telebot.Message) func(*telebot.Mess
 	}
 }
 
-func (c *AddTVShowConversation) AskPickTVShow(m *telebot.Message) func(*telebot.Message) {
+func (c *addTVShowConversation) AskPickTVShow(m *telebot.Message) func(*telebot.Message) {
 
 	// Send custom reply keyboard
 	var options []string
@@ -113,7 +114,7 @@ func (c *AddTVShowConversation) AskPickTVShow(m *telebot.Message) func(*telebot.
 	}
 }
 
-func (c *AddTVShowConversation) AskPickTVShowSeason(m *telebot.Message) func(*telebot.Message) {
+func (c *addTVShowConversation) AskPickTVShowSeason(m *telebot.Message) func(*telebot.Message) {
 
 	// Send custom reply keyboard
 	var options []string
@@ -176,7 +177,7 @@ func (c *AddTVShowConversation) AskPickTVShowSeason(m *telebot.Message) func(*te
 	}
 }
 
-func (c *AddTVShowConversation) AskPickTVShowQuality(m *telebot.Message) func(*telebot.Message) {
+func (c *addTVShowConversation) AskPickTVShowQuality(m *telebot.Message) func(*telebot.Message) {
 
 	profiles, err := c.env.Sonarr.GetProfile("profile")
 
@@ -216,7 +217,7 @@ func (c *AddTVShowConversation) AskPickTVShowQuality(m *telebot.Message) func(*t
 	}
 }
 
-func (c *AddTVShowConversation) AskPickTVShowLanguage(m *telebot.Message) func(*telebot.Message) {
+func (c *addTVShowConversation) AskPickTVShowLanguage(m *telebot.Message) func(*telebot.Message) {
 
 	languages, err := c.env.Sonarr.GetProfile("languageprofile")
 
@@ -255,7 +256,7 @@ func (c *AddTVShowConversation) AskPickTVShowLanguage(m *telebot.Message) func(*
 	}
 }
 
-func (c *AddTVShowConversation) AskFolder(m *telebot.Message) func(*telebot.Message) {
+func (c *addTVShowConversation) AskFolder(m *telebot.Message) func(*telebot.Message) {
 
 	folders, err := c.env.Sonarr.GetFolders()
 	c.folderResults = folders
@@ -312,7 +313,7 @@ func (c *AddTVShowConversation) AskFolder(m *telebot.Message) func(*telebot.Mess
 	}
 }
 
-func (c *AddTVShowConversation) AskSeriesType(m *telebot.Message) func(*telebot.Message) {
+func (c *addTVShowConversation) AskSeriesType(m *telebot.Message) func(*telebot.Message) {
 	var options []string
 	options = append(options, "anime")
 	options = append(options, "standard")
@@ -332,7 +333,7 @@ func (c *AddTVShowConversation) AskSeriesType(m *telebot.Message) func(*telebot.
 	}
 }
 
-func (c *AddTVShowConversation) AddTVShow(m *telebot.Message) {
+func (c *addTVShowConversation) AddTVShow(m *telebot.Message) {
 	_, err := c.env.Sonarr.AddTVShow(*c.selectedTVShow, c.selectedQualityProfile.ID, c.selectedFolder.Path, c.selectedType)
 
 	// Failed to add TV

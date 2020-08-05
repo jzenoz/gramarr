@@ -9,6 +9,7 @@ import (
 	"gopkg.in/tucnak/telebot.v2"
 )
 
+// HandleAuth handles gramarr authentication
 func (e *Env) HandleAuth(m *telebot.Message) {
 	var msg []string
 	pass := m.Payload

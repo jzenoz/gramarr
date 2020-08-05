@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jzenoz/gramarr/internal/users"
+
 	"gopkg.in/tucnak/telebot.v2"
 )
 

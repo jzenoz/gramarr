@@ -9,10 +9,12 @@ import (
 	"gopkg.in/tucnak/telebot.v2"
 )
 
+// HandleCancel returns cancel telegram canned message
 func (e *Env) HandleCancel(m *telebot.Message) {
 	util.Send(e.Bot, m.Sender, "There is no active command to cancel. I wasn't doing anything anyway. Zzzzz...")
 }
 
+// HandleConvoCancel returns cancel during a convo
 func (e *Env) HandleConvoCancel(c conversation.Conversation, m *telebot.Message) {
 	var cancelkeyboard []string
 	cancelkeyboard = append(cancelkeyboard, "/help")

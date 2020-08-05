@@ -12,8 +12,10 @@ import (
 
 var dbMutex sync.Mutex
 
+// UserAccess access
 type UserAccess int
 
+// UserAccess types
 const (
 	UANone UserAccess = iota
 	UARevoked
@@ -21,6 +23,7 @@ const (
 	UAAdmin
 )
 
+// User struct object for access
 type User struct {
 	ID        int        `json:"id"`
 	Username  string     `json:"username"`
@@ -29,39 +32,45 @@ type User struct {
 	Access    UserAccess `json:"access"`
 }
 
+// IsAdmin returns if a user is an admin or not
 func (u User) IsAdmin() bool {
 	return u.Access == UAAdmin
 }
 
+// IsMember returns if a user is a member or not
 func (u User) IsMember() bool {
 	return u.Access == UAMember
 }
 
+// IsRevoked returns if a user is revoked or not from memberlist
 func (u User) IsRevoked() bool {
 	return u.Access == UARevoked
 }
 
+// DisplayName returns username if set in telegram or first name + last name if not set
 func (u User) DisplayName() string {
 	if u.Username != "" {
 		return u.Username
-	} else {
-		if u.LastName != "" {
-			return u.FirstName + " " + u.LastName
-		}
-		return u.FirstName
 	}
+	if u.LastName != "" {
+		return u.FirstName + " " + u.LastName
+	}
+	return u.FirstName
 }
 
+// Recipient converts telegram id to string
 func (u User) Recipient() string {
 	return strconv.Itoa(u.ID)
 }
 
+// UserDB struct object for mapping users
 type UserDB struct {
 	users    []User
 	usersMap map[int]User
 	dbPath   string
 }
 
+// NewUserDB constructs user mapping struct from config
 func NewUserDB(dbPath string) (db *UserDB, err error) {
 	db = &UserDB{
 		users:    []User{},
@@ -77,9 +86,10 @@ func NewUserDB(dbPath string) (db *UserDB, err error) {
 	return
 }
 
+// Create appends user info to user map
 func (u *UserDB) Create(user User) error {
 	if u.Exists(user.ID) {
-		return fmt.Errorf("users with ID %d already exists", user.ID)
+		return fmt.Errorf("user with ID %d already exists", user.ID)
 	}
 
 	u.users = append(u.users, user)
@@ -89,9 +99,10 @@ func (u *UserDB) Create(user User) error {
 	return nil
 }
 
+// Update updates already existing user info to user map
 func (u *UserDB) Update(user User) error {
 	if !u.Exists(user.ID) {
-		return fmt.Errorf("users with ID %d doesn't exist", user.ID)
+		return fmt.Errorf("user with ID %d doesn't exist", user.ID)
 	}
 
 	for i := 0; i < len(u.users); i++ {
@@ -106,9 +117,10 @@ func (u *UserDB) Update(user User) error {
 	return nil
 }
 
+// Delete deletes already existing user info from user map
 func (u *UserDB) Delete(user User) error {
 	if !u.Exists(user.ID) {
-		return fmt.Errorf("users with ID %d doesn't exist", user.ID)
+		return fmt.Errorf("user with ID %d doesn't exist", user.ID)
 	}
 
 	for i, usr := range u.users {
@@ -123,20 +135,24 @@ func (u *UserDB) Delete(user User) error {
 	return nil
 }
 
+// User returns user id and whether it exists
 func (u *UserDB) User(id int) (User, bool) {
 	user, exists := u.usersMap[id]
 	return user, exists
 }
 
+// Exists returns true if a user exists
 func (u *UserDB) Exists(id int) bool {
 	_, ok := u.usersMap[id]
 	return ok
 }
 
+// Users returns all users in user map
 func (u *UserDB) Users() []User {
 	return u.users
 }
 
+// Admins returns list of admins in user map
 func (u *UserDB) Admins() []User {
 	var result []User
 	for _, user := range u.users {
@@ -147,6 +163,7 @@ func (u *UserDB) Admins() []User {
 	return result
 }
 
+// Members returns all members in user map
 func (u *UserDB) Members() []User {
 	var result []User
 	for _, user := range u.users {
@@ -157,6 +174,7 @@ func (u *UserDB) Members() []User {
 	return result
 }
 
+// Revoked returns revoked users in user map
 func (u *UserDB) Revoked() []User {
 	var result []User
 	for _, user := range u.users {
@@ -167,6 +185,7 @@ func (u *UserDB) Revoked() []User {
 	return result
 }
 
+// IsAdmin returns whether a user is an admin or not
 func (u *UserDB) IsAdmin(id int) bool {
 	user, ok := u.usersMap[id]
 	if !ok {
@@ -175,6 +194,7 @@ func (u *UserDB) IsAdmin(id int) bool {
 	return user.Access == UAAdmin
 }
 
+// IsMember returns whether a user is a member or not
 func (u *UserDB) IsMember(id int) bool {
 	user, ok := u.usersMap[id]
 	if !ok {
@@ -183,6 +203,7 @@ func (u *UserDB) IsMember(id int) bool {
 	return user.Access == UAMember
 }
 
+// IsRevoked returns whether a user is revoked or not
 func (u *UserDB) IsRevoked(id int) bool {
 	user, ok := u.usersMap[id]
 	if !ok {
@@ -191,11 +212,11 @@ func (u *UserDB) IsRevoked(id int) bool {
 	return user.Access == UARevoked
 }
 
+// Save saves changes to user map
 func (u *UserDB) Save() error {
 	dbMutex.Lock()
 	defer dbMutex.Unlock()
 
-	// Open a temporary file to hold the new database
 	var tempDb *os.File
 	tempDb, err := ioutil.TempFile(filepath.Dir(u.dbPath), filepath.Base(u.dbPath))
 	if err != nil {
@@ -208,20 +229,17 @@ func (u *UserDB) Save() error {
 		u.users,
 	}
 
-	// Write the data to the new file
 	enc := json.NewEncoder(tempDb)
 	err = enc.Encode(db)
 	if err != nil {
 		return err
 	}
 
-	// Close the file if we succeeded in opening one
 	err = tempDb.Close()
 	if err != nil {
 		return err
 	}
 
-	// Rename the temporary database over the permanent database
 	err = os.Rename(tempDb.Name(), u.dbPath)
 	if err != nil {
 		return err
@@ -229,6 +247,7 @@ func (u *UserDB) Save() error {
 	return nil
 }
 
+// Load loads user map from config file
 func (u *UserDB) Load() error {
 	dbMutex.Lock()
 	defer dbMutex.Unlock()

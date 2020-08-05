@@ -7,6 +7,7 @@ import (
 	"gopkg.in/tucnak/telebot.v2"
 )
 
+// HandleUsers handles user management telegram responses
 func (e *Env) HandleUsers(m *telebot.Message) {
 	err := e.Users.Load()
 	if err != nil {

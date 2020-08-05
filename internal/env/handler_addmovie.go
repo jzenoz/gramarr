@@ -10,15 +10,16 @@ import (
 	"gopkg.in/tucnak/telebot.v2"
 )
 
+// HandleAddMovie handles telegram conversation flow for adding a movie
 func (e *Env) HandleAddMovie(m *telebot.Message) {
-	e.CM.StartConversation(NewAddMovieConversation(e), m)
+	e.CM.StartConversation(newaddMovieConversation(e), m)
 }
 
-func NewAddMovieConversation(e *Env) *AddMovieConversation {
-	return &AddMovieConversation{env: e}
+func newaddMovieConversation(e *Env) *addMovieConversation {
+	return &addMovieConversation{env: e}
 }
 
-type AddMovieConversation struct {
+type addMovieConversation struct {
 	currentStep            func(*telebot.Message)
 	movieQuery             string
 	movieResults           []radarr.Movie
@@ -29,19 +30,19 @@ type AddMovieConversation struct {
 	env                    *Env
 }
 
-func (c *AddMovieConversation) Run(m *telebot.Message) {
+func (c *addMovieConversation) Run(m *telebot.Message) {
 	c.currentStep = c.AskMovie(m)
 }
 
-func (c *AddMovieConversation) Name() string {
+func (c *addMovieConversation) Name() string {
 	return "addmovie"
 }
 
-func (c *AddMovieConversation) CurrentStep() func(*telebot.Message) {
+func (c *addMovieConversation) CurrentStep() func(*telebot.Message) {
 	return c.currentStep
 }
 
-func (c *AddMovieConversation) AskMovie(m *telebot.Message) func(*telebot.Message) {
+func (c *addMovieConversation) AskMovie(m *telebot.Message) func(*telebot.Message) {
 	util.Send(c.env.Bot, m.Sender, "What movie do you want to search for?")
 
 	return func(m *telebot.Message) {
@@ -76,7 +77,7 @@ func (c *AddMovieConversation) AskMovie(m *telebot.Message) func(*telebot.Messag
 	}
 }
 
-func (c *AddMovieConversation) AskPickMovie(m *telebot.Message) func(*telebot.Message) {
+func (c *addMovieConversation) AskPickMovie(m *telebot.Message) func(*telebot.Message) {
 
 	// Send custom reply keyboard
 	var options []string
@@ -107,7 +108,7 @@ func (c *AddMovieConversation) AskPickMovie(m *telebot.Message) func(*telebot.Me
 	}
 }
 
-func (c *AddMovieConversation) AskPickMovieQuality(m *telebot.Message) func(*telebot.Message) {
+func (c *addMovieConversation) AskPickMovieQuality(m *telebot.Message) func(*telebot.Message) {
 
 	profiles, err := c.env.Radarr.GetProfile("profile")
 
@@ -146,7 +147,7 @@ func (c *AddMovieConversation) AskPickMovieQuality(m *telebot.Message) func(*tel
 	}
 }
 
-func (c *AddMovieConversation) AskFolder(m *telebot.Message) func(*telebot.Message) {
+func (c *addMovieConversation) AskFolder(m *telebot.Message) func(*telebot.Message) {
 
 	folders, err := c.env.Radarr.GetFolders()
 	c.folderResults = folders
@@ -203,7 +204,7 @@ func (c *AddMovieConversation) AskFolder(m *telebot.Message) func(*telebot.Messa
 	}
 }
 
-func (c *AddMovieConversation) AddMovie(m *telebot.Message) {
+func (c *addMovieConversation) AddMovie(m *telebot.Message) {
 	_, err := c.env.Radarr.AddMovie(*c.selectedMovie, c.selectedQualityProfile.ID, c.selectedFolder.Path)
 
 	// Failed to add movie

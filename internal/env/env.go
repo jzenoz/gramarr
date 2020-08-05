@@ -13,6 +13,7 @@ import (
 	"gopkg.in/tucnak/telebot.v2"
 )
 
+// Env struct for gramarr environment
 type Env struct {
 	Config *config.Config
 	Users  *users.UserDB
@@ -22,6 +23,7 @@ type Env struct {
 	Sonarr *sonarr.Client
 }
 
+// RequirePrivate ensures private message usage
 func (e *Env) RequirePrivate(h func(m *telebot.Message)) func(m *telebot.Message) {
 	return func(m *telebot.Message) {
 		if !m.Private() {
@@ -31,6 +33,7 @@ func (e *Env) RequirePrivate(h func(m *telebot.Message)) func(m *telebot.Message
 	}
 }
 
+// RequireAuth ensures user auth before message response
 func (e *Env) RequireAuth(access users.UserAccess, h func(m *telebot.Message)) func(m *telebot.Message) {
 	return func(m *telebot.Message) {
 		user, _ := e.Users.User(m.Sender.ID)

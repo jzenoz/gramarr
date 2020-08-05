@@ -8,6 +8,7 @@ import (
 	"gopkg.in/tucnak/telebot.v2"
 )
 
+// HandleStart handles beginning of telegram conversation before tv/movie/users split
 func (e *Env) HandleStart(m *telebot.Message) {
 
 	user, exists := e.Users.User(m.Sender.ID)
