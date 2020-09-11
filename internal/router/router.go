@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"regexp"
 
 	"github.com/jzenoz/gramarr/internal/conversation"
@@ -44,6 +45,8 @@ func (r *Router) Route(m *telebot.Message) {
 }
 
 func (r *Router) routeConvo(m *telebot.Message) bool {
+	fmt.Printf("%+v Command: ", m.Sender)
+	fmt.Printf("%+v\n", m.Text)
 	if !r.cm.HasConversation(m) {
 		return false
 	}

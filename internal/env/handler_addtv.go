@@ -145,7 +145,7 @@ func (c *addTVShowConversation) AskPickTVShowSeason(m *telebot.Message) func(*te
 
 	return func(m *telebot.Message) {
 
-		if m.Text == "Нет, это все." {
+		if m.Text == "Nope. I'm done!" {
 			for _, selectedTVShowSeason := range c.selectedTVShow.Seasons {
 				selectedTVShowSeason.Monitored = false
 				for _, chosenSeason := range c.selectedTVShowSeasons {
